@@ -27,7 +27,7 @@
         </thead>
 
         <tbody>
-            <tr v-for="(order, index) in orders":key="order.id":class="{ Lunas: order.status === 'Lunas' }">
+            <tr v-for="(order, index) in orders":key="order.id" :class="{ BelumBayar: order.status === 'Belum Bayar' ,Gajadi: order.menu === '-'}" >
             <td>{{ index + 1 }}</td>
             
             <td>{{ order.nama }}</td>
@@ -47,31 +47,35 @@
                 </div>
             </td>
         
-        <!-- NOTES -->
-        <td>
-            <div v-if="order.isEditing">
-                <input v-model="order.notes" />
+            <!-- NOTES -->
+            <td>
+                <div v-if="order.isEditing">
+                    <input v-model="order.notes" />
+                    </div>
+                    <div v-else>
+                    {{ order.notes || '-' }}
                 </div>
-                <div v-else>
-                {{ order.notes || '-' }}
-            </div>
-        </td>
+            </td>
         
             <!-- ACTION -->
             <td>
                 <button v-if="!order.isEditing" @click="order.isEditing = true">Edit</button>
                 
                 <button v-else @click="saveOrder(order)">Save</button>
+
             </td>
         
-        <td>{{ order.createdAt }}</td>
-        <td>{{ order.updatedAt }}</td>
-        
-        <!-- STATUS -->
-        <td>
+            <td>{{ order.createdAt }}</td>
+            <td>{{ order.updatedAt }}</td>
+            
+            <!-- STATUS -->
+            <td v-if="order.menu !== '-'">
                 <select v-model="order.status" @change="updateStatus(order)">
                     <option value="Belum Bayar">Belum Bayar</option>
-                    <option value="Lunas">Lunas</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Haya">Haya</option>
+                    <option value="Dio">Dio</option>
+                    
                 </select>
             </td>
             </tr>
@@ -90,8 +94,8 @@
             <td>{{ menu.menu }}</td>
             <td>
                 <select v-model="menu.aktif" @change="updateMenu(menu)">
-                <option :value="true">Aktif</option>
-                <option :value="false">Nonaktif</option>
+                    <option :value="true">Aktif</option>
+                    <option :value="false">Nonaktif</option>
                 </select>
             </td>
             </tr>
@@ -191,8 +195,13 @@ const menuSummary = computed(() => {
   text-align: center;
 }
 
-.Lunas {
-  background-color: #d4edda;
+.BelumBayar {
+  background-color: #f6d0d0;
+  color: black;
   opacity: 0.7;
+}
+
+.Gajadi {
+    background-color: black;
 }
 </style>
