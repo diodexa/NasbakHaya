@@ -4,7 +4,7 @@
         <DateTime/>
         <input v-model="nama" type="text" placeholder="Isi Nama Kamu" class="InputNama"> 
         <div class="ButtonMenu">
-            <button v-for="menu in menus" :key="menu" @click="addOrder(menu)">
+            <button v-for="menu in menus" :key="menu" @click="addOrder(menu)" :disabled="!isMenuActive(menu)">
                 {{ menu }}
             </button>
         </div>
@@ -73,87 +73,96 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import DateTime from '../components/DateTime.vue';
-import { sendOrderToSheet } from "../services/orderService"
-import { fetchTodayOrders } from "../services/orderService"
+import { onMounted, ref } from 'vue'
+import DateTime from '../components/DateTime.vue'
+import { 
+  sendOrderToSheet,
+  fetchTodayOrders,
+  fetchMenuControl
+} from "../services/orderService"
 
+const nama = ref("")
+const orders = ref([])
+const menuStatus = ref([])
 
-const nama = ref ("")
 const menus = [
   "Nasi Bakar Ayam",
   "Nasi Bakar Jando",
   "Nasi Bakar Cumi",
   "Ketoprak",
-  "Nasi Daun Jeruk Telor Barendo",
-  "Nasi Daun Jeruk Ayam Goreng",
-  "Nasi Daun Jeruk Ayam Bakar",
+  "NDJ Telor Barendo",
+  "NDJ Ayam Goreng",
+  "NDJ Ayam Bakar",
 ]
 
+/* ================= LOAD DATA ================= */
+
 onMounted(async () => {
+
+  // load menu status
+  menuStatus.value = await fetchMenuControl()
+
+  // load today's orders
   const data = await fetchTodayOrders()
-  console.log("DATA DARI API:", data)
   orders.value = data.map(order => ({
     ...order,
     isEditing: false
   }))
 })
 
-const getCurrentTime = () => {
-  const now = new Date()
-  return now.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit"
-  })
-}
+/* ================= ADD ORDER ================= */
 
-const orders = ref ([])
-const addOrder = async (menu) => {if (!nama.value) {alert("Nama harus diisi dulu!")}
+const addOrder = async (menu) => {
 
-  const orderData = {nama: nama.value,menu,notes: ""}
-  await sendOrderToSheet(orderData)
-
-//   const response = await sendOrderToSheet(orderData)
-
-
-   const newOrder = {
-    ...orderData,
-    id: crypto.randomUUID(), 
-    createdAt: getCurrentTime(),
-    updatedAt: "-",
-    status: "Belum Bayar",
-    isEditing: false
+  if (!nama.value) {
+    alert("Nama harus diisi dulu!")
+    return
   }
 
-  orders.value.push(newOrder)
+  const response = await sendOrderToSheet({
+    nama: nama.value,
+    menu,
+    notes: ""
+  })
+
+  // reload orders biar ID sinkron
+  const data = await fetchTodayOrders()
+  orders.value = data.map(order => ({
+    ...order,
+    isEditing: false
+  }))
 
   nama.value = ""
 }
 
-
-const deleteOrder = (index) => {
-    orders.value.splice(index, 1)
-}
-
-const editOrder = (index) => {
-    const newName = prompt("Edit nama:", orders.value[index].nama)
-    if (newName) {
-        orders.value[index].nama = newName
-    }
-}
+/* ================= SAVE NOTES ================= */
 
 const saveOrder = async (order) => {
+
   order.isEditing = false
 
   await sendOrderToSheet({
     action: "update",
     id: order.id,
-    notes: order.notes
+    nama: order.nama,
+    menu: order.menu,
+    notes: order.notes,
+    status: order.status
   })
 
-  order.updatedAt = getCurrentTime()
+  const data = await fetchTodayOrders()
+  orders.value = data.map(order => ({
+    ...order,
+    isEditing: false
+  }))
 }
 
+/* ================= CHECK MENU ACTIVE ================= */
+
+const isMenuActive = (menu) => {
+  const found = menuStatus.value.find(m => m.menu === menu)
+  return found ? found.aktif : true
+}
 </script>
 
 <style scoped>

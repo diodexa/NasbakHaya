@@ -1,5 +1,5 @@
+const URL = "https://script.google.com/macros/s/AKfycbxTEI-8DpkFbtYAdWkEO1UTQuTjAjFYzCq29TCAALfi79fWV_UIbGLP4Ml8T9THEcmV/exec"
 export const sendOrderToSheet = async (orderData) => {
-  const URL = "https://script.google.com/macros/s/AKfycbxfXJJNhNtXqTkwbHwcoJo5enRGQqNWqQ4aB2sflIk9TFHlFF491ScaAtca8KrnGMY/exec"
 
   await fetch(URL, {
     method: "POST",
@@ -12,7 +12,6 @@ export const sendOrderToSheet = async (orderData) => {
 }
 
 export const fetchTodayOrders = async () => {
-  const URL = "https://script.google.com/macros/s/AKfycbxfXJJNhNtXqTkwbHwcoJo5enRGQqNWqQ4aB2sflIk9TFHlFF491ScaAtca8KrnGMY/exec"
 
   const response = await fetch(URL)
 
@@ -21,4 +20,10 @@ export const fetchTodayOrders = async () => {
   }
 
   return await response.json()
+}
+
+export const fetchMenuControl = async () => {
+  const Base = URL + "?type=menu"
+  const res = await fetch(Base)
+  return await res.json()
 }
