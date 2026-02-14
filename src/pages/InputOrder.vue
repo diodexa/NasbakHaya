@@ -255,6 +255,8 @@ const isMenuActive = (menu) => {
     padding: 8px 14px;
     justify-content: center;
     align-items: center;
+    color: black;
+
 }
 
 
