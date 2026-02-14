@@ -99,7 +99,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import {fetchTodayOrders,fetchMenuControl,sendOrderToSheet,fetchOrdersByDate} from "../services/orderService"
+import {fetchTodayOrders,fetchMenuControl,sendOrderToSheet,fetchOrdersByDate} from "../src/services/orderService"
 import DateTime from '../components/DateTime.vue'
 // import Notifikasi from '../components/Notifikasi.vue'
 
