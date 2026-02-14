@@ -49,12 +49,4 @@ button:focus-visible {
   padding: 2em;
 }
 
-@media (prefers-color-scheme: light) {
 
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
