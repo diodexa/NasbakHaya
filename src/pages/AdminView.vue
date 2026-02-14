@@ -211,6 +211,7 @@ const toggleMenu = async (menu) => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  color: black;
 }
 h1 {
   font-size: clamp(1.8rem, 9vw, 4rem);
