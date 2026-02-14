@@ -1,4 +1,4 @@
-const URL = "https://script.google.com/macros/s/AKfycbxTEI-8DpkFbtYAdWkEO1UTQuTjAjFYzCq29TCAALfi79fWV_UIbGLP4Ml8T9THEcmV/exec"
+const URL = "https://script.google.com/macros/s/AKfycbzCucLLIZ1AQUiBeGQqa0xcXvt4zgnYmgnM58fgKbcaAsdyRbJw1xeKEvpdhu1mWcM1/exec"
 export const sendOrderToSheet = async (orderData) => {
 
   await fetch(URL, {
@@ -26,4 +26,15 @@ export const fetchMenuControl = async () => {
   const Base = URL + "?type=menu"
   const res = await fetch(Base)
   return await res.json()
+}
+
+export const fetchOrdersByDate = async (date) => {
+
+  const response = await fetch(`${URL}?date=${date}`)
+
+  if (!response.ok) {
+    throw new Error("Gagal fetch data by date")
+  }
+
+  return await response.json()
 }
