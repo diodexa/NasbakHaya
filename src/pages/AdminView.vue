@@ -1,5 +1,5 @@
 <template>
-    <!-- <Notifikasi/> -->
+    <Notifikasi/>
     <div class="OrderDiv">
       <h1>Nasi <span style="color: red;">Bakar</span> Haya</h1>
       <div class="FilterDate">
@@ -98,10 +98,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeMount } from 'vue'
 import {fetchTodayOrders,fetchMenuControl,sendOrderToSheet,fetchOrdersByDate} from "../services/orderService"
 import DateTime from '../components/DateTime.vue'
-// import Notifikasi from '../components/Notifikasi.vue'
+import Notifikasi from '../components/Notifikasi.vue'
+
 
 const orders = ref([])
 const menuStatus = ref([])
@@ -116,18 +117,52 @@ const getLocalDate = () => {
 
 const selectedDate = ref(getLocalDate())
 
+const intervalTime = 5000
+let intervalId = null
+const previousCount = ref(0)
 
 
 onMounted(async () => {
+  // 🔹 load pertama kali
   const orderData = await fetchTodayOrders()
+  orders.value = orderData.map(o => ({ ...o, isEditing: false }))
+  previousCount.value = orderData.length
 
-  orders.value = orderData.map(order => ({
-    ...order,
-    isEditing: false
-  }))
-
+  // 🔹 load menu (cukup sekali)
   const menuData = await fetchMenuControl()
   menuStatus.value = menuData
+
+  // 🔹 mulai polling
+  intervalId = setInterval(async () => {
+    try {
+      const newData = await fetchTodayOrders()
+
+      // ambil ID order yang sudah ada
+      const existingIds = orders.value.map(o => o.id)
+
+      // filter order baru
+      const addedOrders = newData.filter(o => !existingIds.includes(o.id))
+
+      if (addedOrders.length) {
+        // push order baru ke array reactive
+        orders.value.push(...addedOrders.map(o => ({ ...o, isEditing: false })))
+
+        // mainkan sound notifikasi
+        notificationSound.currentTime = 0
+        notificationSound.play().catch(() => {})
+      }
+
+      // update previousCount supaya sound tetap akurat
+      previousCount.value = newData.length
+
+    } catch (err) {
+      console.error("Polling orders gagal:", err)
+    }
+  }, intervalTime)
+})
+
+onBeforeMount(() => {
+  if (intervalId) clearInterval(intervalId)
 })
 
 /* ================= TANGGAL ================= */
