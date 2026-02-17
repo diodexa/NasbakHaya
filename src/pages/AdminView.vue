@@ -124,7 +124,7 @@ const previousCount = ref(0)
 
 onMounted(async () => {
   // 🔹 load pertama kali
-  const orderData = await fetchTodayOrders()
+  const orderData = await fetchOrdersByDate(selectedDate.value)
   orders.value = orderData.map(o => ({ ...o, isEditing: false }))
   previousCount.value = orderData.length
 
@@ -135,12 +135,8 @@ onMounted(async () => {
   // 🔹 mulai polling
   intervalId = setInterval(async () => {
     try {
-      const newData = await fetchTodayOrders()
-
-      // ambil ID order yang sudah ada
-      const existingIds = orders.value.map(o => o.id)
-
-      // filter order baru
+      const newData = await fetchOrdersByDate(selectedDate.value)
+      const existingIds = orders.value.map(o => o.id) 
       const addedOrders = newData.filter(o => !existingIds.includes(o.id))
 
       if (addedOrders.length) {
@@ -260,6 +256,11 @@ h1 {
   background-color: white;
 }
 
+.TabelOrder input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 6px;
+}
 
 .TabelOrder th,
 .TabelOrder td {

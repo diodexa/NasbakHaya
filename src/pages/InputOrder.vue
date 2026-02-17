@@ -1,10 +1,5 @@
 <template>
-    <div v-if="isSubmitting" class="loading-overlay">
-        <div class="loading-box">
-            <div class="spinner"></div>
-            <p>Loading</p>
-        </div>
-    </div>
+    <Loading :show="isSubmitting"/>
     <div class="OrderDiv">
         <h1>Nasi <span style="color: red;">Bakar</span> Haya</h1>
         <DateTime/>
@@ -12,6 +7,7 @@
         <div class="ButtonMenu">
             <button v-for="menu in menus" :key="menu" @click="addOrder(menu)" :disabled="!isMenuActive(menu)" class="menu-button">
                 <span v-if="isSubmitting" class="mini-spinner"></span>
+                <span v-if="!isMenuActive(menu)" class="overlay-text">Habis</span>
                 {{ menu }}
             </button>
         </div>
@@ -28,7 +24,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(order, index) in orders" :key="index">
+                <tr v-for="(order, index) in sortedOrders" :key="order.id">
                     <td style="display:none">{{ order.id }}</td>
 
                     <td>{{ order.nama }}</td>
@@ -78,13 +74,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import DateTime from '../components/DateTime.vue'
 import { 
   sendOrderToSheet,
   fetchTodayOrders,
   fetchMenuControl
 } from "../services/orderService"
+import Loading from '../components/Loading.vue'
 
 const nama = ref("")
 const orders = ref([])
@@ -139,7 +136,18 @@ onMounted(async () => {
   }
 })
 
+// =================urutan tabel ==============
+const sortedOrders = computed(() => {
+  return [...orders.value].sort((a, b) => {
+    const toMinutes = (time) => {
+      if (!time) return 0
+      const [h, m] = time.split(":").map(Number)
+      return h * 60 + m
+    }
 
+    return toMinutes(b.createdAt) - toMinutes(a.createdAt)
+  })
+})
 /* ================= ADD ORDER ================= */
 
 const addOrder = async (menu) => {
@@ -170,18 +178,6 @@ const addOrder = async (menu) => {
     isSubmitting.value = false
     }
 
-//   const response = await sendOrderToSheet({
-//     nama: nama.value,
-//     menu,
-//     notes: ""
-//   })
-
-//   // reload orders biar ID sinkron
-//   const data = await fetchTodayOrders()
-//   orders.value = data.map(order => ({
-//     ...order,
-//     isEditing: false
-//   }))
 
   nama.value = ""
 }
@@ -248,6 +244,7 @@ const isMenuActive = (menu) => {
 }
 
 
+
 .menu-button {
     display: flex;
     flex-wrap: wrap;
@@ -256,45 +253,34 @@ const isMenuActive = (menu) => {
     justify-content: center;
     align-items: center;
     color: black;
+}
 
+.menu-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: gray;
 }
 
 
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
+.mini-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  animation: spin 0.6s linear infinite;
 }
 
-.loading-box {
-    background: white;
-    padding: 30px 40px;
-    border-radius: 10px;
-    text-align: center;
+.overlay-text {
+    position: absolute;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: white;
+    z-index: 2;
 }
 
-.spinner {
-    width: 35px;
-    height: 35px;
-    border: 4px solid #ddd;
-    border-top: 4px solid #4caf50;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 10px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 @media (max-width: 600px) {
   .menu-button {
