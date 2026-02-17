@@ -253,10 +253,11 @@ const isMenuActive = (menu) => {
     justify-content: center;
     align-items: center;
     color: black;
+    flex: 1 1 45%; 
 }
 
 .menu-button:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
   background-color: gray;
 }
@@ -277,16 +278,18 @@ const isMenuActive = (menu) => {
     position: absolute;
     font-weight: bold;
     font-size: 0.9rem;
-    color: white;
+    color: rgb(245, 245, 245);
+    opacity: 0.8;
     z-index: 2;
+    bottom: 0;
 }
 
 
 @media (max-width: 600px) {
-  .menu-button {
+  /* .menu-button {
     padding: 8px 14px;
     flex: 1 1 45%; 
-}
+} */
 
 
 th,td {
