@@ -6,9 +6,14 @@
         <label> Tanggal:  </label>
         <input type="date" v-model="selectedDate" @change="handleDateChange" />
       </div>
+      <div class="ShiftToggle">
+        <button class="ShiftButton" @click="toggleShift">
+          {{ activeShift === 'siang' ? '🌤  Siang' : '🌙  Malam' }}
+        </button>
+      </div>
         <div class="SummaryBox">
-            <div v-for="(total, menu) in menuSummary" :key="menu" style="font-weight: 700;">
-                {{ menu }} : <strong>{{ total }}</strong>
+            <div v-for="item in menuSummary" :key="item[0]" style="font-weight:700;">
+              {{ item[0] }} : <strong>{{ item[1] }}</strong>
             </div>
         </div>
         
@@ -29,7 +34,7 @@
         </thead>
 
         <tbody>
-            <tr v-for="(order, index) in orders":key="order.id" :class="{ BelumBayar: order.status === 'Belum Bayar' ,Gajadi: order.menu === '-'}" >
+            <tr v-for="(order, index) in sortedOrders" :key="order.id" :class="{ BelumBayar: order.status === 'Belum Bayar' ,Gajadi: order.menu === '-'}" >
             <td>{{ index + 1 }}</td>
             
             <td>{{ order.nama }}</td>
@@ -61,13 +66,19 @@
         
             <!-- ACTION -->
             <td>
-                <button v-if="!order.isEditing" @click="order.isEditing = true" class="icon-btn">
-                  <i class="fa-solid fa-pen " ></i>
-                </button>
-                
-                <button v-else @click="saveOrder(order)">Save</button>
+              <button v-if="!order.isEditing" @click="order.isEditing = true" class="icon-btn">
+                <i class="fa-solid fa-pen"></i>
+              </button>
 
+              <button v-if="!order.isEditing" @click="deleteOrder(order)" class="icon-btn delete-btn">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+              
+              <button v-else @click="saveOrder(order)">
+                Save
+              </button>
             </td>
+
         
             <td>{{ order.createdAt }}</td>
             <td>{{ order.updatedAt }}</td>
@@ -107,6 +118,9 @@ import Notifikasi from '../components/Notifikasi.vue'
 const orders = ref([])
 const menuStatus = ref([])
 const isLoading = ref(false)
+const activeShift = ref('malam')
+
+
 const getLocalDate = () => {
   const now = new Date()
   const year = now.getFullYear()
@@ -203,6 +217,28 @@ const saveOrder = async (order) => {
   })
 }
 
+// =============filter siang/malam======================================
+const filteredOrders = computed(() => {
+  return orders.value.filter(order => {
+    if (!order.createdAt) return false
+
+    const [h, m] = order.createdAt.split(":").map(Number)
+    const totalMinutes = h * 60 + m
+
+    const siangStart = 5 * 60
+    const siangEnd = 12 * 60 + 59
+
+    if (activeShift.value === 'siang') {
+      return totalMinutes >= siangStart && totalMinutes <= siangEnd
+    } else {
+      return totalMinutes < siangStart || totalMinutes > siangEnd
+    }
+  })
+})
+const toggleShift = () => {
+  activeShift.value = activeShift.value === 'malam' ? 'siang' : 'malam'
+}
+
 /* ================= UPDATE MENU CONTROL ================= */
 
 const updateMenu = async (menu) => {
@@ -216,14 +252,26 @@ const updateMenu = async (menu) => {
 const menuSummary = computed(() => {
   const result = {}
 
-  orders.value.forEach(order => {
+  filteredOrders.value.forEach(order => {
     if (!result[order.menu]) {
       result[order.menu] = 0
     }
     result[order.menu]++
   })
 
-  return result
+  return Object.entries(result).sort((a, b) => a[0].localeCompare(b[0]))
+})
+
+const sortedOrders = computed(() => {
+  return [...filteredOrders.value].sort((a, b) => {
+    const toMinutes = (time) => {
+      if (!time) return 0
+      const [h, m] = time.split(":").map(Number)
+      return h * 60 + m
+    }
+
+    return toMinutes(b.createdAt) - toMinutes(a.createdAt)
+  })
 })
 
 const toggleMenu = async (menu) => {
@@ -234,6 +282,20 @@ const toggleMenu = async (menu) => {
     menu: menu.menu,
     aktif: menu.aktif
   })
+}
+
+// =============Delete ======================
+const deleteOrder = async (order) => {
+  const confirmDelete = confirm(`Hapus order ${order.nama}?`)
+  if (!confirmDelete) return
+
+  await sendOrderToSheet({
+    action: "delete",
+    id: order.id
+  })
+
+  // hapus dari state frontend
+  orders.value = orders.value.filter(o => o.id !== order.id)
 }
 </script>
 
@@ -312,6 +374,10 @@ option {
   transition: 0.2s ease;
 }
 
+.delete-btn:hover {
+  transform: scale(1.1);
+}
+
 .active-btn {
   background-color: #28a745;
 }
@@ -323,5 +389,26 @@ option {
 .menu-control button:hover {
   transform: scale(1.03);
 }
+
+.ShiftToggle {
+  display: flex;
+  gap: 10px;
+}
+
+.ShiftButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: fit-content;
+  transition: 0.2s ease;
+}
+
+.ShiftButton:hover {
+  opacity: 0.8;
+}
+
+
 
 </style>

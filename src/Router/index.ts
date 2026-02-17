@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import InputOrder from '../pages/InputOrder.vue'
 import AdminPage from '../pages/AdminView.vue'
+import InputOrderSiang from '../pages/InputOrderSiang.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -13,6 +14,11 @@ const router = createRouter({
       path: '/order',
       name: 'Order',
       component: InputOrder
+    },
+    {
+      path: '/orderSiang',
+      name: 'OrderSiang',
+      component: InputOrderSiang
     },
     {
       path: '/admin',

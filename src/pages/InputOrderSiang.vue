@@ -12,7 +12,7 @@
             </button>
         </div>
 
-        <table v-if="MalamOrders.length > 0" class="TabelOrder">
+        <table v-if="siangOrders.length > 0" class="TabelOrder">
             <thead>
                 <tr>
                     <th>Nama</th>
@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(order, index) in sortedMalamOrders" :key="order.id">
+                <tr v-for="(order, index) in sortedSiangOrders" :key="order.id">
                     <td style="display:none">{{ order.id }}</td>
 
                     <td>{{ order.nama }}</td>
@@ -100,23 +100,23 @@ const menus = [
 
 
 
-/* ================= Malam ================= */
+/* ================= Siang ================= */
 
-const MalamOrders = computed(() => {
+const siangOrders = computed(() => {
   return orders.value.filter(order => {
     if (!order.createdAt) return false
 
     const [h, m] = order.createdAt.split(":").map(Number)
     const totalMinutes = h * 60 + m
 
-    const start = 14 * 60    
-    const end = 20 * 60 + 59  
+    const start = 5 * 60    
+    const end = 12 * 60 + 59  
 
     return totalMinutes >= start && totalMinutes <= end
   })
 })
 
-
+// =========================================
 onMounted(async () => {
   try {
     isSubmitting.value = true
@@ -139,20 +139,8 @@ onMounted(async () => {
 })
 
 // =================urutan tabel ==============
-// const sortedOrders = computed(() => {
-//   return [...orders.value].sort((a, b) => {
-//     const toMinutes = (time) => {
-//       if (!time) return 0
-//       const [h, m] = time.split(":").map(Number)
-//       return h * 60 + m
-//     }
-
-//     return toMinutes(b.createdAt) - toMinutes(a.createdAt)
-//   })
-// })
-
-const sortedMalamOrders = computed(() => {
-  return [...MalamOrders.value].sort((a, b) => {
+const sortedSiangOrders = computed(() => {
+  return [...siangOrders.value].sort((a, b) => {
     const toMinutes = (time) => {
       if (!time) return 0
       const [h, m] = time.split(":").map(Number)
