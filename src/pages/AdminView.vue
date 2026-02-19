@@ -225,7 +225,7 @@ const filteredOrders = computed(() => {
     const [h, m] = order.createdAt.split(":").map(Number)
     const totalMinutes = h * 60 + m
 
-    const siangStart = 5 * 60
+    const siangStart = 1 * 60
     const siangEnd = 12 * 60 + 59
 
     if (activeShift.value === 'siang') {

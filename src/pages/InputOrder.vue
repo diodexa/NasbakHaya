@@ -110,7 +110,7 @@ const MalamOrders = computed(() => {
     const totalMinutes = h * 60 + m
 
     const start = 14 * 60    
-    const end = 20 * 60 + 59  
+    const end = 23 * 60 + 59  
 
     return totalMinutes >= start && totalMinutes <= end
   })

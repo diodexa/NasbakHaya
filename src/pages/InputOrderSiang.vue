@@ -109,7 +109,7 @@ const siangOrders = computed(() => {
     const [h, m] = order.createdAt.split(":").map(Number)
     const totalMinutes = h * 60 + m
 
-    const start = 5 * 60    
+    const start = 1 * 60    
     const end = 12 * 60 + 59  
 
     return totalMinutes >= start && totalMinutes <= end
