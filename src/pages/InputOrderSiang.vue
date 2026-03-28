@@ -86,17 +86,8 @@ import Loading from '../components/Loading.vue'
 const nama = ref("")
 const orders = ref([])
 const menuStatus = ref([])
+const menus = ref([])
 const isSubmitting = ref(false)
-
-const menus = [
-  "Nasi Bakar Ayam 16K",
-  "NDJ Telor Barendo 13K",
-  "Nasi Bakar Cumi 18K",
-  "NDJ Ayam Goreng 18K",
-  "Nasi Bakar Jando 17K",
-  "NDJ Ayam Bakar 18K",
-  "Ketoprak 15K",
-]
 
 
 
@@ -123,6 +114,7 @@ onMounted(async () => {
 
     // 1 load menu status dulu
     menuStatus.value = await fetchMenuControl()
+    menus.value = menuStatus.value.map(index=>index.menu)
 
     // 2️ load orders
     const data = await fetchTodayOrders()
