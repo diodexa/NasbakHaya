@@ -1,7 +1,7 @@
 <template>
     <Loading :show="isSubmitting"/>
     <div class="OrderDiv">
-        <h1>Nasi <span style="color: red;">Bakar</span> Haya</h1>
+        <h1>Nasi <span style="color: #F48B29;">Bakar</span> Haya</h1>
         <DateTime/>
         <input v-model="nama" type="text" placeholder="Isi Nama Kamu" class="InputNama"> 
         <div class="ButtonMenu">

@@ -1,10 +1,13 @@
 <template>
     <Notifikasi/>
     <div class="OrderDiv">
-      <h1>Nasi <span style="color: red;">Bakar</span> Haya</h1>
+      <h1>Nasi <span style="color: #F48B29;">Bakar</span> Haya</h1>
       <div class="FilterDate">
         <label> Tanggal:  </label>
-        <input type="date" v-model="selectedDate" @change="handleDateChange" />
+        <div class="date-wrapper">
+          <input 
+            type="date" v-model="selectedDate" @change="handleDateChange"class="date-input"/>
+        </div>
       </div>
       <div class="ShiftToggle">
         <button class="ShiftButton" @click="toggleShift">
@@ -308,6 +311,54 @@ const deleteOrder = async (order) => {
 }
 h1 {
   font-size: clamp(1.8rem, 9vw, 4rem);
+}
+
+.FilterDate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.date-wrapper {
+  position: relative;
+}
+
+.date-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 10px 40px 10px 12px;
+  border: 1px solid #E3D2C3;
+  border-radius: 8px;
+  background-color: #f9f6f3;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+/* focus effect */
+.date-input:focus {
+  outline: none;
+  border-color: #c5a880;
+  box-shadow: 0 0 0 2px rgba(197, 168, 128, 0.2);
+}
+
+/* sembunyikan icon bawaan */
+.date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+}
+
+/* icon custom */
+.date-wrapper::after {
+  content: "📅";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 16px;
 }
 
 .TabelOrder {
