@@ -5,76 +5,101 @@
         <DateTime/>
         <input v-model="nama" type="text" placeholder="Isi Nama Kamu" class="InputNama"> 
         <div class="ButtonMenu">
-            <button v-for="menu in menus" :key="menu" @click="addOrder(menu)" :disabled="!isMenuActive(menu)" class="menu-button">
+            <button v-for="item in menus" :key="item.menu" @click="addOrder(item.menu)" :disabled="!isMenuActive(item.menu)" class="menu-button" :style="{backgroundImage: `url('${item.gambar}')`,backgroundSize: 'cover',backgroundPosition: 'center'}" >
                 <span v-if="isSubmitting" class="mini-spinner"></span>
-                <span v-if="!isMenuActive(menu)" class="overlay-text">Habis</span>
-                {{ menu }}
+                <span v-if="!isMenuActive(item.menu)" class="overlay-text">Habis</span>
+        
+                {{ item.menu }} 
             </button>
         </div>
 
-        <table v-if="MalamOrders.length > 0" class="TabelOrder">
-            <thead>
-                <tr>
-                    <th>Nama</th>
-                    <th>Menu</th>
-                    <th>Notes</th>
-                    <th>Action</th>
-                    <th>Created</th>
-                    <!-- <th>Updated</th> -->
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(order, index) in sortedMalamOrders" :key="order.id">
-                    <td style="display:none">{{ order.id }}</td>
+        <button @click="showModalList = true" class="buttonList" >
+          <span class="icon-list"></span>
+          <label class="Label">ListMenu</label>
+        </button>
+        <Modal :show="showModalList" @close="showModalList = false">
+          <h2>List Pesanan</h2>
+          <table v-if="MalamOrders.length > 0" class="TabelOrder">
+              <thead>
+                  <tr>
+                      <th>Nama</th>
+                      <th>Menu</th>
+                      <th>Notes</th>
+                      <th>Action</th>
+                      <th>Created</th>
+                      <!-- <th>Updated</th> -->
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr v-for="(order, index) in sortedMalamOrders" :key="order.id">
+                      <td style="display:none">{{ order.id }}</td>
+  
+                      <td>{{ order.nama }}</td>
+                      
+  
+                      <!-- MENU -->
+                      <td>
+                      <!-- <div v-if="order.isEditing">
+                          <select v-model="order.menu">
+                          <option v-for="menu in menus" :key="menu" :value="menu">
+                              {{ menu }}
+                          </option>
+                          </select>
+                      </div> -->
+                      <div >
+                          {{ order.menu }}
+                      </div>
+                      </td>
+  
+                      <!-- NOTES -->
+                      <td>
+                      <div v-if="order.isEditing">
+                          <input v-model="order.notes" />
+                      </div>
+                      <div v-else>
+                          {{ order.notes || '-' }}
+                      </div>
+                      </td>
+                      <td>   
+                          <button v-if="!order.isEditing" @click="order.isEditing = true" class="icon-btn">
+                              <i class="fa-solid fa-pen " ></i>
+                          </button>
+                          <button v-if="order.isEditing" @click="saveOrder(order)">
+                              Save
+                          </button>
+  <!-- 
+                          <button @click="deleteOrder(index)">
+                              Hapus
+                          </button> -->
+                      </td>
+                      <td>{{ order.createdAt }}</td>
+                      <!-- <td>{{ order.updatedAt }}</td> -->
+                  </tr>
+              </tbody>
+          </table>
+        </Modal>
 
-                    <td>{{ order.nama }}</td>
-                    
+        <Modal :show="showConfirmModal" @close="showConfirmModal = false">
+          <h2>Konfirmasi Pesanan</h2>
+          <p>Pesan <strong>{{ selectedMenu }}</strong>?</p>
 
-                    <!-- MENU -->
-                    <td>
-                    <!-- <div v-if="order.isEditing">
-                        <select v-model="order.menu">
-                        <option v-for="menu in menus" :key="menu" :value="menu">
-                            {{ menu }}
-                        </option>
-                        </select>
-                    </div> -->
-                    <div >
-                        {{ order.menu }}
-                    </div>
-                    </td>
+          <div class="confirm-actions">
+            <button @click="confirmOrder">Ya</button>
+            <button @click="showConfirmModal = false">Batal</button>
+          </div>
+        </Modal>   
 
-                    <!-- NOTES -->
-                    <td>
-                    <div v-if="order.isEditing">
-                        <input v-model="order.notes" />
-                    </div>
-                    <div v-else>
-                        {{ order.notes || '-' }}
-                    </div>
-                    </td>
-                    <td>   
-                        <button v-if="!order.isEditing" @click="order.isEditing = true" class="icon-btn">
-                            <i class="fa-solid fa-pen " ></i>
-                        </button>
-                        <button v-if="order.isEditing" @click="saveOrder(order)">
-                            Save
-                        </button>
-<!-- 
-                        <button @click="deleteOrder(index)">
-                            Hapus
-                        </button> -->
-                    </td>
-                    <td>{{ order.createdAt }}</td>
-                    <!-- <td>{{ order.updatedAt }}</td> -->
-                </tr>
-            </tbody>
-        </table>
+        <Modal :show="showThanksModal" @close="showThanksModal = false">
+          <div class="thanks-modal">
+            <img :src="gifUrl" />
+            <p style="font-size: 2rem;">Terima kasih sudah memesan <strong>{{ lastNama }}</strong></p>
+          </div>
+        </Modal>
     </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import DateTime from '../components/DateTime.vue'
 import { 
   sendOrderToSheet,
@@ -82,12 +107,18 @@ import {
   fetchMenuControl
 } from "../services/orderService"
 import Loading from '../components/Loading.vue'
+import Modal from '../components/ModalListOrder.vue'
 
 const nama = ref("")
 const orders = ref([])
 const menuStatus = ref([])
 const menus = ref([])
 const isSubmitting = ref(false)
+const showModalList = ref(false)
+const isClosing = ref(false)
+const showThanksModal = ref(false)
+const lastNama = ref("")
+const gifUrl = "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExd3Rhd2l1bDZobXZjdDhqdmRhNjJ2bHJrZ3cxcnNhcjdhejFmdXZnayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fREdWLtU5vTgjudo3I/giphy.gif"
 
 
 /* ================= Malam ================= */
@@ -113,7 +144,7 @@ onMounted(async () => {
 
     // 1 load menu status dulu
     menuStatus.value = await fetchMenuControl()
-    menus.value = menuStatus.value.map(index => index.menu);
+    menus.value = menuStatus.value
     
 
     // 2️ load orders
@@ -129,6 +160,7 @@ onMounted(async () => {
     isSubmitting.value = false
   }
 })
+console.log(menus.value)
 
 // =================urutan tabel ==============
 // const sortedOrders = computed(() => {
@@ -154,6 +186,7 @@ const sortedMalamOrders = computed(() => {
     return toMinutes(b.createdAt) - toMinutes(a.createdAt)
   })
 })
+
 /* ================= ADD ORDER ================= */
 
 const addOrder = async (menu) => {
@@ -182,9 +215,18 @@ const addOrder = async (menu) => {
     } finally {
     isSubmitting.value = false
     }
+    lastNama.value = nama.value
+    nama.value = ""
+    showThanksModal.value = true
 
+  watch(showThanksModal, (val) => {
+  if (val) {
+    setTimeout(() => {
+      showThanksModal.value = false
+    }, 2000)
+  }
+})
 
-  nama.value = ""
 }
 
 /* ================= SAVE NOTES ================= */
@@ -214,12 +256,22 @@ const isMenuActive = (menu) => {
   const found = menuStatus.value.find(m => m.menu === menu)
   return found ? found.aktif : true
 }
+
+// ============ Animasi  ==========================
+
+const handleClose = () => {
+  isClosing.value = true
+
+  setTimeout(() => {
+    showModal.value = false
+    isClosing.value = false
+  }, 300);
+}
 </script>
 
 <style scoped>
 .OrderDiv {
     display: flex;
-    gap: 5px;
     flex-direction: column;
 }
 .InputNama {
@@ -253,17 +305,24 @@ const isMenuActive = (menu) => {
     display: flex;
     flex-wrap: wrap;
     position: relative;
-    padding: 8px 14px;
+    padding: 5rem 14px;
     justify-content: center;
     align-items: center;
-    color: black;
+    color: maroon;
     flex: 1 1 45%; 
+    font-weight: 900;
+    font-size: 2rem;
+    text-shadow: 
+    -1px -1px 0 white,
+     1px -1px 0 white,
+    -1px  1px 0 white,
+     1px  1px 0 white;
 }
 
 .menu-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-  background-color: gray;
+  filter: grayscale();
 }
 
 
@@ -282,10 +341,78 @@ const isMenuActive = (menu) => {
     position: absolute;
     font-weight: bold;
     font-size: 0.9rem;
-    color: rgb(245, 245, 245);
-    opacity: 0.8;
+    color: red;
     z-index: 2;
-    bottom: 0;
+    font-weight: 500;
+    font-size: 10rem;
+    filter:none
+}
+
+.buttonList {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: none;
+  background-color: #F48B29;
+  border: rgb(98, 95, 95) 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* icon list */
+.icon-list {
+  width: 20px;
+  height: 2px;
+  background: white;
+  position: relative;
+}
+
+.icon-list::before,
+.icon-list::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  background: white;
+  left: 0;
+}
+
+.icon-list::before {
+  top: -6px;
+}
+
+.icon-list::after {
+  top: 6px;
+}
+
+.modal.closing {
+  transform: translate(150%, 150%) scale(0.2);
+  opacity: 0;
+}
+
+.Label {
+  position: absolute;
+  bottom: 50px; 
+  right: 0;
+  background: black;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: 0.2s ease;
+  pointer-events: none;
+}
+
+.buttonList:hover .Label {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 
@@ -306,6 +433,15 @@ th,td {
   padding: 4px 6px;
 }
 
+.thanks-modal {
+  text-align: center;
+  padding: 20px;
+}
+
+.thanks-modal h2 {
+  color: #28a745;
+  margin-bottom: 10px;
+}
 
 }
 

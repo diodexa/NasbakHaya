@@ -19,6 +19,10 @@ body {
   color: black;
 }
 
+h1,p {
+  margin: 0;
+}
+
 
 #app {
   max-width: 1280px;

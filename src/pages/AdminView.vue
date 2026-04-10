@@ -46,7 +46,7 @@
             <td>
                 <div v-if="order.isEditing">
                     <select v-model="order.menu">
-                        <option v-for="menu in menuStatus":key="menu.menu" :value="menu.menu":disabled="!menu.aktif">
+                        <option v-for="menu in menuStatus" :key="menu.menu" :value="menu.menu" :disabled="!menu.aktif">
                             {{ menu.menu }}
                         </option>
                     </select>
