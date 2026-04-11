@@ -2,12 +2,12 @@
     <Loading :show="isSubmitting"/>
     <div class="OrderDiv">
         <h1>Nasi <span style="color: #F48B29;">Bakar</span> Haya</h1>
-        <DateTime/>
+        <DateTime style="font-family: fantasy;"> </DateTime>
         <input v-model="nama" type="text" placeholder="Isi Nama Kamu" class="InputNama"> 
         <div class="ButtonMenu">
-            <button v-for="item in menus" :key="item.menu" @click="addOrder(item.menu)" :disabled="!isMenuActive(item.menu)" class="menu-button" :style="{backgroundImage: `url('${item.gambar}')`,backgroundSize: 'cover',backgroundPosition: 'center'}" >
+            <button v-for="item in menus" :key="item.menu" @click="addOrder(item.menu)" :disabled="!isMenuActive(item.menu)" class="menu-button" :style="{backgroundImage: `url('${item.gambar}')`,backgroundSize: 'cover',backgroundPosition: 'center', fontFamily:'fantasy'}" >
                 <span v-if="isSubmitting" class="mini-spinner"></span>
-                <span v-if="!isMenuActive(item.menu)" class="overlay-text">Habis</span>
+                <span v-if="!isMenuActive(item.menu)" class="overlay-text">HABIS</span>
         
                 {{ item.menu }} 
             </button>
@@ -81,15 +81,6 @@
           </table>
         </Modal>
 
-        <Modal :show="showConfirmModal" @close="showConfirmModal = false">
-          <h2>Konfirmasi Pesanan</h2>
-          <p>Pesan <strong>{{ selectedMenu }}</strong>?</p>
-
-          <div class="confirm-actions">
-            <button @click="confirmOrder">Ya</button>
-            <button @click="showConfirmModal = false">Batal</button>
-          </div>
-        </Modal> 
         
         <Modal :show="showThanksModal" @close="showThanksModal = false">
           <div class="thanks-modal">
@@ -292,6 +283,14 @@ const handleClose = () => {
     display: flex;
     flex-direction: column;
 }
+
+.OrderDiv h1 {
+  text-shadow: 
+    -3px -3px 0 white,
+     3px -3px 0 white,
+    -3px  3px 0 white,
+     3px  3px 0 white;
+}
 .InputNama {
     font-size: 2rem;
     text-align: center;
@@ -329,7 +328,7 @@ const handleClose = () => {
     color: maroon;
     flex: 1 1 45%; 
     font-weight: 900;
-    font-size: 2rem;
+    font-size: 2.6rem;
     text-shadow: 
     -1px -1px 0 white,
      1px -1px 0 white,
@@ -338,7 +337,6 @@ const handleClose = () => {
 }
 
 .menu-button:disabled {
-  opacity: 0.7;
   cursor: not-allowed;
   filter: grayscale();
 }
@@ -451,10 +449,7 @@ th,td {
   padding: 20px;
 }
 
-.thanks-modal h2 {
-  color: #28a745;
-  margin-bottom: 10px;
-}
+
 
 }
 
