@@ -49,6 +49,8 @@ const close = () => {
   top: 10px;
   right: 10px;
   cursor: pointer;
+  background-color: #F48B29;
+  color: white;
 }
 
 </style>
