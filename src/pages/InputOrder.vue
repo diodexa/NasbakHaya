@@ -323,13 +323,13 @@ const handleClose = () => {
     display: flex;
     flex-wrap: wrap;
     position: relative;
-    padding: 4rem 14px;
+    padding: 2rem 14px;
     justify-content: center;
     align-items: center;
     color: maroon;
     flex: 1 1 45%; 
     font-weight: 900;
-    font-size: 2.6rem;
+    font-size: 2rem;
     text-shadow: 
     -1px -1px 0 white,
      1px -1px 0 white,
@@ -360,7 +360,7 @@ const handleClose = () => {
     color: red;
     z-index: 2;
     font-weight: 500;
-    font-size: 7rem;
+    font-size: 5rem;
     filter:none
 }
 
@@ -368,8 +368,8 @@ const handleClose = () => {
 .Qris-modal {
   position: fixed;
   right: 20px;
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background-color: #f42929;
   border: rgb(142, 142, 142) 5px solid;
