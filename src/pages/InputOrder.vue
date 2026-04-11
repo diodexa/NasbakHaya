@@ -3,7 +3,7 @@
     <div class="OrderDiv">
         <h1>Nasi <span style="color: #F48B29;">Bakar</span> Haya</h1>
         <DateTime style="font-family: fantasy;"> </DateTime>
-        <input v-model="nama" type="text" placeholder="Isi Nama Kamu" class="InputNama"> 
+        <input v-model="nama" type="text" placeholder="Isi Dulu Nama Kamu...." class="InputNama"> 
         <div class="ButtonMenu">
             <button v-for="item in menus" :key="item.menu" @click="addOrder(item.menu)" :disabled="!isMenuActive(item.menu)" class="menu-button" :style="{backgroundImage: `url('${item.gambar}')`,backgroundSize: 'cover',backgroundPosition: 'center', fontFamily:'fantasy'}" >
                 <span v-if="isSubmitting" class="mini-spinner"></span>
@@ -113,7 +113,7 @@ import {
   fetchMenuControl
 } from "../services/orderService"
 import Loading from '../components/Loading.vue'
-import Modal from '../components/ModalListOrder.vue'
+import Modal from '../components/Modal.vue'
 
 const nama = ref("")
 const orders = ref([])
@@ -294,6 +294,7 @@ const handleClose = () => {
 .InputNama {
     font-size: 2rem;
     text-align: center;
+    border-radius: 10px;
 }
 .ButtonMenu {
     display: flex;
@@ -338,7 +339,7 @@ const handleClose = () => {
 
 .menu-button:disabled {
   cursor: not-allowed;
-  filter: grayscale();
+  filter:sepia();
 }
 
 
