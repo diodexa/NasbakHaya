@@ -14,8 +14,10 @@
         </div>
 
         <button @click="showModalList = true" class="buttonList" >
-          <span class="icon-list"></span>
-          <label class="Label">ListMenu</label>
+          <span class="icon-list"> 
+            <i class="fa-solid fa-clipboard-list" style="font-size: 2rem;"></i>
+          </span>
+          <label class="Label">Order List</label>
         </button>
         <Modal :show="showModalList" @close="showModalList = false">
           <h2>List Pesanan</h2>
@@ -87,12 +89,25 @@
             <button @click="confirmOrder">Ya</button>
             <button @click="showConfirmModal = false">Batal</button>
           </div>
-        </Modal>   
-
+        </Modal> 
+        
         <Modal :show="showThanksModal" @close="showThanksModal = false">
           <div class="thanks-modal">
             <img :src="gifUrl" />
             <p style="font-size: 2rem;">Terima kasih sudah memesan <strong>{{ lastNama }}</strong></p>
+            <strong style="font-size: 1.5rem; color: maroon;">Pembayaran dan cek pesanan di tombol kanan bawah ya </strong>
+          </div>
+        </Modal>
+
+        <button @click="showQris = true" class="Qris-modal" >
+          <i class="fa-solid fa-qrcode" style="font-size: 2rem;"></i>
+          <label class="Label">QR Pembayaran</label>
+        </button>
+
+        <Modal :show="showQris" @close="showQris = false">
+          <div class="thanks-modal">
+            <img src="/qrisHaya.png" />
+            <p style="font-size: 2rem;">Japri untuk bukti bayarnya ya</p>
           </div>
         </Modal>
     </div>
@@ -114,9 +129,10 @@ const orders = ref([])
 const menuStatus = ref([])
 const menus = ref([])
 const isSubmitting = ref(false)
-const showModalList = ref(false)
 const isClosing = ref(false)
+const showModalList = ref(false)
 const showThanksModal = ref(false)
+const showQris = ref(false)
 const lastNama = ref("")
 const gifUrl = "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExd3Rhd2l1bDZobXZjdDhqdmRhNjJ2bHJrZ3cxcnNhcjdhejFmdXZnayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fREdWLtU5vTgjudo3I/giphy.gif"
 
@@ -161,6 +177,8 @@ onMounted(async () => {
   }
 })
 console.log(menus.value)
+
+console.log(showQris)
 
 // =================urutan tabel ==============
 // const sortedOrders = computed(() => {
@@ -305,7 +323,7 @@ const handleClose = () => {
     display: flex;
     flex-wrap: wrap;
     position: relative;
-    padding: 5rem 14px;
+    padding: 4rem 14px;
     justify-content: center;
     align-items: center;
     color: maroon;
@@ -340,68 +358,55 @@ const handleClose = () => {
 .overlay-text {
     position: absolute;
     font-weight: bold;
-    font-size: 0.9rem;
     color: red;
     z-index: 2;
     font-weight: 500;
-    font-size: 10rem;
+    font-size: 7rem;
     filter:none
 }
 
-.buttonList {
+.buttonList,
+.Qris-modal {
   position: fixed;
-  bottom: 20px;
   right: 20px;
-  width: 55px;
-  height: 55px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  border: none;
-  background-color: #F48B29;
-  border: rgb(98, 95, 95) 2px solid;
+  background-color: #f42929;
+  border: rgb(142, 142, 142) 5px solid;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   cursor: pointer;
+  transform: scale(1.5);
+  animation: heartpump 2s infinite;
+  color: white;
 }
 
-/* icon list */
-.icon-list {
-  width: 20px;
-  height: 2px;
-  background: white;
-  position: relative;
+.buttonList {
+  bottom: 20px;
 }
 
-.icon-list::before,
-.icon-list::after {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 2px;
-  background: white;
-  left: 0;
+.Qris-modal {
+  bottom: 120px;
 }
 
-.icon-list::before {
-  top: -6px;
-}
 
-.icon-list::after {
-  top: 6px;
-}
 
 .modal.closing {
   transform: translate(150%, 150%) scale(0.2);
   opacity: 0;
 }
 
-.Label {
+.buttonList .Label,
+.Qris-modal .Label {
   position: absolute;
   bottom: 50px; 
-  right: 0;
   background: black;
   color: white;
   padding: 5px 10px;
+  text-wrap-mode: nowrap;
   border-radius: 6px;
   font-size: 12px;
   opacity: 0;
@@ -410,10 +415,18 @@ const handleClose = () => {
   pointer-events: none;
 }
 
-.buttonList:hover .Label {
+.Qris-modal .Label {
+  right: -20px;
+}
+
+.buttonList:hover .Label,
+.Qris-modal:hover .Label
+ {
   opacity: 1;
   transform: translateY(0);
 }
+
+
 
 
 @media (max-width: 600px) {
@@ -444,6 +457,19 @@ th,td {
 }
 
 }
+
+@keyframes heartpump {
+  0%, 100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.2);
+  }
+  60% {
+    transform: scale(1);
+  }
+}
+
 
 
 </style>
