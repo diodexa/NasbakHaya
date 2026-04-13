@@ -14,11 +14,22 @@
           {{ activeShift === 'siang' ? '🌤  Siang' : '🌙  Malam' }}
         </button>
       </div>
-        <div class="SummaryBox">
+      <div style="mix-blend-mode: difference; filter: invert(1); display: flex; justify-content: space-between;">
+        <div style=" margin: 0 auto; ">
+          Total
             <div v-for="item in menuSummary" :key="item[0]" style="font-weight:700;">
               {{ item[0] }} : <strong>{{ item[1] }}</strong>
             </div>
         </div>
+        
+        <div style="margin-left: auto; text-align: right;">
+          Ecare
+          <div v-for="(item,menu) in ecareSummary" :key="menu" style="font-weight:700;">
+            {{ menu }} : <strong>{{ item }}</strong>
+          </div>
+        </div>
+      </div>
+
         
         <!-- ================= ORDER TABLE ================= -->
         
@@ -105,9 +116,7 @@
             <button v-for="menu in menuStatus" :key="menu.menu" :class="menu.aktif ? 'active-btn' : 'inactive-btn'"@click="toggleMenu(menu)">
               {{ menu.menu }}
             </button>
-</div>
-        
-    
+          </div>
     </div>
 </template>
 
@@ -265,6 +274,28 @@ const menuSummary = computed(() => {
   return Object.entries(result).sort((a, b) => a[0].localeCompare(b[0]))
 })
 
+// =================SummaryEcare =============
+const ecareOrders = computed(() =>
+  orders.value.filter(order =>
+    order.nama?.toLowerCase().includes("ecare -")
+  )
+)
+
+const ecareSummary = computed(() => {
+  const result = {}
+
+  ecareOrders.value.forEach(order => {
+    if (!result[order.menu]) {
+      result[order.menu] = 0
+    }
+    result[order.menu]++
+  })
+
+  return result
+})
+// ===========================================
+
+
 const sortedOrders = computed(() => {
   return [...filteredOrders.value].sort((a, b) => {
     const toMinutes = (time) => {
@@ -311,6 +342,15 @@ const deleteOrder = async (order) => {
 }
 h1 {
   font-size: clamp(1.8rem, 9vw, 4rem);
+  text-shadow: 
+    -3px -3px 0 white,
+     3px -3px 0 white,
+    -3px  3px 0 white,
+     3px  3px 0 white;
+}
+
+label {
+  color: white;
 }
 
 .FilterDate {

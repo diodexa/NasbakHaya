@@ -140,7 +140,10 @@ const MalamOrders = computed(() => {
     const start = 14 * 60    
     const end = 23 * 60 + 59  
 
-    return totalMinutes >= start && totalMinutes <= end
+    const malam = totalMinutes >= start && totalMinutes <= end
+    const isEcare = order.nama?.toLowerCase().includes("ecare -")
+
+    return malam && isEcare
   })
 })
 
@@ -167,9 +170,6 @@ onMounted(async () => {
     isSubmitting.value = false
   }
 })
-console.log(menus.value)
-
-console.log(showQris)
 
 // =================urutan tabel ==============
 // const sortedOrders = computed(() => {
@@ -209,7 +209,7 @@ const addOrder = async (menu) => {
         isSubmitting.value = true
 
         await sendOrderToSheet({
-            nama: nama.value,
+            nama:"ecare - "+ nama.value,
             menu,
             notes: ""
         })
@@ -365,6 +365,7 @@ const handleClose = () => {
     z-index: 2;
     font-weight: 500;
     font-size: clamp(4rem, 9vw, 4rem);
+
 }
 
 .buttonList,
@@ -436,7 +437,6 @@ const handleClose = () => {
     padding: 8px 14px;
     flex: 1 1 45%; 
 } */
-
 
 
 th,td {

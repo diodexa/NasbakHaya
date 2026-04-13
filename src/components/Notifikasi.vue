@@ -43,7 +43,8 @@ onBeforeUnmount(() => {
 
 <template>
   <!-- <div style="display:none;"></div> -->
-  <button v-if="!userInteracted" @click="activateSound" style="position: absolute; right: 0; border: none; background: none; font-size: 5vw;">
+  <button v-if="!userInteracted" @click="activateSound" style="position: absolute; right: 0; border: none; background: none; font-size: 5vw; mix-blend-mode: difference; filter: invert(1);">
     <i class="fa-solid fa-bell"></i>
   </button>
 </template>
+
