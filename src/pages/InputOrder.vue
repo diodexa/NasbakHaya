@@ -140,7 +140,10 @@ const MalamOrders = computed(() => {
     const start = 14 * 60    
     const end = 23 * 60 + 59  
 
-    return totalMinutes >= start && totalMinutes <= end
+    const malam = totalMinutes >= start && totalMinutes <= end
+    const isNotEcare = !order.nama?.toLowerCase().includes("ecare -")
+
+    return malam && isNotEcare
   })
 })
 
