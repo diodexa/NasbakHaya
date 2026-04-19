@@ -16,7 +16,7 @@
         <input v-model="searchQuery" type="text" placeholder="Search" class="search-input"/>
         <Modal :show="showModalList" @close="showModalList = false"></Modal>
       </div>     
-      <p>Total : {{ orders.length }}</p>
+      <p>Total : {{ filteredOrders.length }}</p>
       <div style=" margin: 0; display: flex;">
           <div v-for="item in menuSummary" :key="item[0]" style="font-weight:700;" class="Totaltable">
             {{ item[0] }} : <br/> <p style="font-size: larger;">{{ item[1] }}</p>
