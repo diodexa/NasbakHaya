@@ -453,10 +453,9 @@ const handleClose = () => {
 
 
 @media (max-width: 600px) {
-  /* .menu-button {
-    padding: 8px 14px;
-    flex: 1 1 45%; 
-} */
+.InputNama {
+  width: 98%;
+}
 
 
 th,td {

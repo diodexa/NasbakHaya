@@ -322,7 +322,7 @@ const handleClose = () => {
      3px  3px 0 white;
 }
 .InputNama {
-    font-size: 2rem;
+    font-size: 1.7rem;
     text-align: center;
     border-radius: 10px;
 }
@@ -364,6 +364,7 @@ const handleClose = () => {
     font-family: fantasy;
     background-size: cover;
     background-position: center; 
+    background-repeat: no-repeat;
     text-shadow: 
     -1px -1px 0 white,
      1px -1px 0 white,
@@ -453,10 +454,10 @@ const handleClose = () => {
 
 
 @media (max-width: 600px) {
-  /* .menu-button {
-    padding: 8px 14px;
-    flex: 1 1 45%; 
-} */
+
+.InputNama {
+  width: 98%;
+}
 
 
 

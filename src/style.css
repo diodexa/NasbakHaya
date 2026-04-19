@@ -19,7 +19,9 @@ body {
   background-image: url('/BackgroundHaya.png');
   background-repeat: no-repeat;
   background-size: cover;
+  background-position: center;
   color: black;
+  overflow-x: hidden;
 }
 
 h1,p {

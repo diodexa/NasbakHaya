@@ -13,102 +13,96 @@
         <button class="ShiftButton" @click="toggleShift">
           {{ activeShift === 'siang' ? '🌤  Siang' : '🌙  Malam' }}
         </button>
-      </div>
-      <div style="mix-blend-mode: difference; filter: invert(1); display: flex; justify-content: space-between;">
-        <div style=" margin: 0 auto; ">
-          Total
-            <div v-for="item in menuSummary" :key="item[0]" style="font-weight:700;">
-              {{ item[0] }} : <strong>{{ item[1] }}</strong>
-            </div>
-        </div>
-        
-        <div style="margin-left: auto; text-align: right;">
-          Ecare
-          <div v-for="(item,menu) in ecareSummary" :key="menu" style="font-weight:700;">
-            {{ menu }} : <strong>{{ item }}</strong>
+        <input v-model="searchQuery" type="text" placeholder="Search" class="search-input"/>
+        <Modal :show="showModalList" @close="showModalList = false"></Modal>
+      </div>     
+      <p>Total : {{ orders.length }}</p>
+      <div style=" margin: 0; display: flex;">
+          <div v-for="item in menuSummary" :key="item[0]" style="font-weight:700;" class="Totaltable">
+            {{ item[0] }} : <br/> <p style="font-size: larger;">{{ item[1] }}</p>
           </div>
-        </div>
       </div>
+
 
         
         <!-- ================= ORDER TABLE ================= -->
         
         <table class="TabelOrder">
-            <thead>
-                <tr>
-                <th>No</th>
-                <th>Nama</th>
-                <th>Menu</th>
-                <th>Notes</th>
-            <th>Action</th>
-            <th>Created</th>
-            <th>Updated</th>
-            <th>Status</th>
-        </tr>
-        </thead>
+          <thead>
+              <tr>
+                <th @click="handleSort('no')">No</th>
+                <th @click="handleSort('nama')">Nama</th>
+                <th @click="handleSort('menu')">Menu</th>
+                <th @click="handleSort('notes')">Notes</th>
+                <th @click="handleSort('action')">Action</th>
+                <th @click="handleSort('created')">Created</th>
+                <th @click="handleSort('updated')">Updated</th>
+                <th @click="handleSort('status')">Status</th>
+              </tr>
+          </thead>
 
-        <tbody>
-            <tr v-for="(order, index) in sortedOrders" :key="order.id" :class="{ BelumBayar: order.status === 'Belum Bayar' ,Gajadi: order.menu === '-'}" >
-            <td>{{ index + 1 }}</td>
-            
-            <td>{{ order.nama }}</td>
-            
-            <!-- MENU -->
-            <td>
-                <div v-if="order.isEditing">
-                    <select v-model="order.menu">
-                        <option v-for="menu in menuStatus" :key="menu.menu" :value="menu.menu" :disabled="!menu.aktif">
-                            {{ menu.menu }}
-                        </option>
-                    </select>
-                </div>
-                
-                <div v-else>
-                    {{ order.menu }}
-                </div>
-            </td>
-        
-            <!-- NOTES -->
-            <td>
-                <div v-if="order.isEditing">
-                    <input v-model="order.notes" />
-                    </div>
-                    <div v-else>
-                    {{ order.notes || '-' }}
-                </div>
-            </td>
-        
-            <!-- ACTION -->
-            <td>
-              <button v-if="!order.isEditing" @click="order.isEditing = true" class="icon-btn">
-                <i class="fa-solid fa-pen"></i>
-              </button>
-
-              <button v-if="!order.isEditing" @click="deleteOrder(order)" class="icon-btn delete-btn">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+          <tbody>
+              <tr v-for="(order, index) in sortedOrders" :key="order.id" :class="{ BelumBayar: order.status === 'Belum Bayar' ,Gajadi: order.menu === '-'}" >
+              <td>{{ index + 1 }}</td>
               
-              <button v-else @click="saveOrder(order)">
-                Save
-              </button>
-            </td>
+              <td>{{ order.nama }}</td>
+              
+              <!-- MENU -->
+              <td>
+                  <div v-if="order.isEditing">
+                      <select v-model="order.menu">
+                          <option v-for="menu in menuStatus" :key="menu.menu" :value="menu.menu" :disabled="!menu.aktif">
+                              {{ menu.menu }}
+                          </option>
+                      </select>
+                  </div>
+                  
+                  <div v-else>
+                      {{ order.menu }}
+                  </div>
+              </td>
+          
+              <!-- NOTES -->
+              <td>
+                  <div v-if="order.isEditing">
+                    <input v-model="order.notes" />
+                  </div>
+                  <div v-else>
+                      {{ order.notes || '-' }}
+                  </div>
+              </td>
+          
+              <!-- ACTION -->
+              <td>
+                <button v-if="!order.isEditing" @click="order.isEditing = true" class="icon-btn">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
 
-        
-            <td>{{ order.createdAt }}</td>
-            <td>{{ order.updatedAt }}</td>
-            
-            <!-- STATUS -->
-            <td v-if="order.menu !== '-'">
-                <select v-model="order.status" @change="updateStatus(order)">
-                    <option value="Belum Bayar">Belum Bayar</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Haya">Haya</option>
-                    <option value="Dio">Dio</option>
-                    
-                </select>
-            </td>
-            </tr>
-        </tbody>
+                <button v-if="!order.isEditing" @click="deleteOrder(order)" class="icon-btn delete-btn">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+                
+                <button v-else @click="saveOrder(order)">
+                  Save
+                </button>
+              </td>
+
+          
+              <td>{{ order.createdAt }}</td>
+              <td>{{ order.updatedAt }}</td>
+              
+              <!-- STATUS -->
+              <td v-if="order.menu !== '-'">
+                  <select v-model="order.status" @change="updateStatus(order)">
+                      <option value="Belum Bayar">Belum Bayar</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Haya">Haya</option>
+                      <option value="Dio">Dio</option>
+                      
+                  </select>
+              </td>
+              </tr>
+          </tbody>
         </table>
         <h2>Menu Control</h2>
      
@@ -125,12 +119,16 @@ import { ref, onMounted, computed, onBeforeMount } from 'vue'
 import {fetchTodayOrders,fetchMenuControl,sendOrderToSheet,fetchOrdersByDate} from "../services/orderService"
 import DateTime from '../components/DateTime.vue'
 import Notifikasi from '../components/Notifikasi.vue'
+import Modal from '../components/Modal.vue'
 
 
 const orders = ref([])
 const menuStatus = ref([])
 const isLoading = ref(false)
 const activeShift = ref('malam')
+const sortKey = ref("createdAt") 
+const sortOrder = ref("desc")
+const searchQuery = ref("")
 
 
 const getLocalDate = () => {
@@ -247,9 +245,13 @@ const filteredOrders = computed(() => {
     }
   })
 })
+/* ================= button ================= */
+
 const toggleShift = () => {
   activeShift.value = activeShift.value === 'malam' ? 'siang' : 'malam'
 }
+
+
 
 /* ================= UPDATE MENU CONTROL ================= */
 
@@ -297,14 +299,30 @@ const ecareSummary = computed(() => {
 
 
 const sortedOrders = computed(() => {
-  return [...filteredOrders.value].sort((a, b) => {
-    const toMinutes = (time) => {
-      if (!time) return 0
-      const [h, m] = time.split(":").map(Number)
-      return h * 60 + m
+  return [...searchedOrders.value].sort((a, b) => {
+
+    let valA = a[sortKey.value]
+    let valB = b[sortKey.value]
+
+    if (sortKey.value === "createdAt" || sortKey.value === "updatedAt") {
+      const toMinutes = (time) => {
+        if (!time || time === "-") return 0
+        const [h = 0, m = 0] = time.split(":").map(Number)
+        return h * 60 + m
+      }
+
+      valA = toMinutes(valA)
+      valB = toMinutes(valB)
     }
 
-    return toMinutes(b.createdAt) - toMinutes(a.createdAt)
+    if (typeof valA === "string") {
+      valA = valA.toLowerCase()
+      valB = valB.toLowerCase()
+    }
+
+    if (valA < valB) return sortOrder.value === "asc" ? -1 : 1
+    if (valA > valB) return sortOrder.value === "asc" ? 1 : -1
+    return 0
   })
 })
 
@@ -331,6 +349,36 @@ const deleteOrder = async (order) => {
   // hapus dari state frontend
   orders.value = orders.value.filter(o => o.id !== order.id)
 }
+
+// sort head tabel
+
+const handleSort = (key) => {
+  if (sortKey.value === key) {
+    // kalau klik kolom yang sama → toggle
+    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc"
+  } else {
+    // kalau kolom baru → set key + default asc
+    sortKey.value = key
+    sortOrder.value = "asc"
+  }
+}
+
+//           Search
+
+const searchedOrders = computed(() => {
+  if (!searchQuery.value) return filteredOrders.value
+
+  const q = searchQuery.value.toLowerCase()
+
+  return filteredOrders.value.filter(order => {
+    return (
+      order.nama?.toLowerCase().includes(q) ||
+      order.menu?.toLowerCase().includes(q) ||
+      order.notes?.toLowerCase().includes(q) ||
+      order.status?.toLowerCase().includes(q)
+    )
+  })
+})
 </script>
 
 <style>
@@ -349,8 +397,46 @@ h1 {
      3px  3px 0 white;
 }
 
+
 label {
-  color: white;
+  mix-blend-mode: difference; 
+  filter: invert(1);
+}
+
+.search-input {
+ width: 80%;
+ text-align: center;
+}
+
+.Totaltable {
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+  justify-content: space-between;
+  border: 1px solid;
+  padding: 3px;
+}
+
+.Totaltable:nth-child(1) {
+  background-color: #e2c670;
+}
+.Totaltable:nth-child(2) {
+  background-color: #abe270;
+}
+.Totaltable:nth-child(3) {
+  background-color: #70e2ba;
+}
+.Totaltable:nth-child(4) {
+  background-color: #70dee2;
+}
+.Totaltable:nth-child(5) {
+  background-color: #70ade2;
+}
+.Totaltable:nth-child(6) {
+  background-color: #b270e2;
+}
+.Totaltable:nth-child(7) {
+  background-color: #e270c5;
 }
 
 .FilterDate {
@@ -423,6 +509,10 @@ label {
   word-break: break-all;
 }
 
+.TabelOrder th {
+  cursor: pointer;
+}
+
 select {
   width: 100%;
 }
@@ -488,11 +578,9 @@ option {
 
 .ShiftButton {
   padding: 8px 16px;
-  border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  width: fit-content;
   transition: 0.2s ease;
 }
 
@@ -500,6 +588,11 @@ option {
   opacity: 0.8;
 }
 
+@media (max-width: 600px) {
+  .search-input {
+   width: 63%;
+  }
 
+}
 
 </style>

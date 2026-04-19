@@ -135,14 +135,14 @@ const MalamOrders = computed(() => {
 
     const [h = 0, m = 0] = (order.createdAt || "0:0").split(":").map(Number)
     const totalMinutes = h * 60 + m
-
+    
     const start = 1 * 60    
     const end = 12 * 60 + 59  
 
     const malam = totalMinutes >= start && totalMinutes <= end
-    const isNotEcare = !order.nama?.toLowerCase().includes("ecare -")
+    const isEcare = order.nama?.toLowerCase().startsWith("ecare - ")
 
-    return malam && isNotEcare
+    return malam && isEcare
   })
 })
 
@@ -150,12 +150,12 @@ const MalamOrders = computed(() => {
 onMounted(async () => {
   try {
     isSubmitting.value = true
-
+    
     // 1 load menu status dulu
     menuStatus.value = await fetchMenuControl()
     menus.value = menuStatus.value
     
-
+    
     // 2️ load orders
     const data = await fetchTodayOrders()
     orders.value = data.map(order => ({
@@ -169,9 +169,6 @@ onMounted(async () => {
     isSubmitting.value = false
   }
 })
-console.log(menus.value)
-
-console.log(showQris)
 
 watch(showThanksModal, (val) => {
 if (val) {
@@ -179,15 +176,16 @@ if (val) {
     showThanksModal.value = false
   }, 2000)
 }
+
 })
 // =================urutan tabel ==============
 // const sortedOrders = computed(() => {
-//   return [...orders.value].sort((a, b) => {
-//     const toMinutes = (time) => {
-//       if (!time) return 0
-//       const [h, m] = time.split(":").map(Number)
-//       return h * 60 + m
-//     }
+  //   return [...orders.value].sort((a, b) => {
+    //     const toMinutes = (time) => {
+      //       if (!time) return 0
+      //       const [h, m] = time.split(":").map(Number)
+      //       return h * 60 + m
+      //     }
 
 //     return toMinutes(b.createdAt) - toMinutes(a.createdAt)
 //   })
@@ -204,15 +202,17 @@ const sortedMalamOrders = computed(() => {
     return toMinutes(b.createdAt) - toMinutes(a.createdAt)
   })
 })
-
 /* ================= ADD ORDER ================= */
 
+
 const addOrder = async (menu) => {
-  const targetNama = nama.value
+  const targetNama = "ecare - "+ nama.value
   const targetMenu = menu
   const targetTime = new Date().toTimeString().slice(0,5)
 
-  if (!nama.value) {
+  if (isSubmitting.value) return 
+
+  if (!nama.value.trim()) {
     alert("Nama harus diisi dulu!")
     return
   }
@@ -246,7 +246,6 @@ const addOrder = async (menu) => {
 
           return await fetchTodayOrders()
         }
-
         const data = await fetchWithRetry()
 
         orders.value = data.map(order => ({
@@ -255,16 +254,16 @@ const addOrder = async (menu) => {
         }))
 
 
+
     } catch (err) {
     console.error("Gagal kirim:", err)
-    alert("Maaf ada kesalahan, silakan input ulang ya :) ")
+    alert("Maaf ada kesalahan sistem, silakan input ulang ya :) ")
     } finally {
     isSubmitting.value = false
     }
     lastNama.value = nama.value
     nama.value = ""
     showThanksModal.value = true
-
 
 }
 
@@ -386,6 +385,7 @@ const handleClose = () => {
     z-index: 2;
     font-weight: 500;
     font-size: clamp(4rem, 9vw, 4rem);
+
 }
 
 .buttonList,
@@ -453,11 +453,9 @@ const handleClose = () => {
 
 
 @media (max-width: 600px) {
-  /* .menu-button {
-    padding: 8px 14px;
-    flex: 1 1 45%; 
-} */
-
+.InputNama {
+  width: 98%;
+}
 
 
 th,td {
