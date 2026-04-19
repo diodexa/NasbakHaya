@@ -5,8 +5,7 @@
         <DateTime style="font-family: fantasy; mix-blend-mode: difference; filter: invert(1);"> </DateTime>
         <input v-model="nama" type="text" placeholder="Isi Dulu Nama Kamu...." class="InputNama"> 
         <div class="ButtonMenu">
-            <button v-for="item in menus" :key="item.menu" @click="addOrder(item.menu)" :disabled="!isMenuActive(item.menu)" class="menu-button" :style="{backgroundImage: `url('${item.gambar}')`}" >
-                <span v-if="isSubmitting" class="mini-spinner"></span>
+            <button v-for="item in menus" :key="item.menu" @click="addOrder(item.menu)" :disabled="!isMenuActive(item.menu) || isSubmitting" class="menu-button" :style="{backgroundImage: `url('${item.gambar}')`}" >
                 <span v-if="!isMenuActive(item.menu)" class="overlay-text">HABIS</span>
         
                 {{ item.menu }} 
@@ -134,7 +133,7 @@ const MalamOrders = computed(() => {
   return orders.value.filter(order => {
     if (!order.createdAt) return false
 
-    const [h, m] = order.createdAt.split(":").map(Number)
+    const [h = 0, m = 0] = (order.createdAt || "0:0").split(":").map(Number)
     const totalMinutes = h * 60 + m
 
     const start = 14 * 60    
@@ -163,7 +162,7 @@ onMounted(async () => {
       ...order,
       isEditing: false
     }))
-
+    
   } catch (err) {
     console.error("Gagal fetch:", err)
   } finally {
@@ -174,6 +173,13 @@ console.log(menus.value)
 
 console.log(showQris)
 
+watch(showThanksModal, (val) => {
+if (val) {
+  setTimeout(() => {
+    showThanksModal.value = false
+  }, 2000)
+}
+})
 // =================urutan tabel ==============
 // const sortedOrders = computed(() => {
 //   return [...orders.value].sort((a, b) => {
@@ -191,7 +197,7 @@ const sortedMalamOrders = computed(() => {
   return [...MalamOrders.value].sort((a, b) => {
     const toMinutes = (time) => {
       if (!time) return 0
-      const [h, m] = time.split(":").map(Number)
+      const [h = 0, m = 0] = time.split(":").map(Number)
       return h * 60 + m
     }
 
@@ -202,6 +208,9 @@ const sortedMalamOrders = computed(() => {
 /* ================= ADD ORDER ================= */
 
 const addOrder = async (menu) => {
+  const targetNama = nama.value
+  const targetMenu = menu
+  const targetTime = new Date().toTimeString().slice(0,5)
 
   if (!nama.value) {
     alert("Nama harus diisi dulu!")
@@ -212,18 +221,43 @@ const addOrder = async (menu) => {
         isSubmitting.value = true
 
         await sendOrderToSheet({
-            nama: nama.value,
-            menu,
-            notes: ""
+            nama: targetNama,
+            menu: targetMenu,
+            notes: "",
+            createdAt: targetTime,
+            isEditing: false
         })
 
-        const data = await fetchTodayOrders()
+        const fetchWithRetry = async (retry = 3) => {
+
+          for (let i = 0; i < retry; i++) {
+            const data = await fetchTodayOrders()
+
+            const found = data.find(o =>
+              o.nama === targetNama &&
+              o.createdAt === targetTime &&
+              o.menu === targetMenu
+            )
+
+            if (found) return data
+
+            await new Promise(r => setTimeout(r, 300))
+          }
+
+          return await fetchTodayOrders()
+        }
+
+        const data = await fetchWithRetry()
+
         orders.value = data.map(order => ({
-            ...order,isEditing: false
+          ...order,
+          isEditing: false
         }))
+
 
     } catch (err) {
     console.error("Gagal kirim:", err)
+    alert("Maaf ada kesalahan, silakan input ulang ya :) ")
     } finally {
     isSubmitting.value = false
     }
@@ -231,13 +265,6 @@ const addOrder = async (menu) => {
     nama.value = ""
     showThanksModal.value = true
 
-  watch(showThanksModal, (val) => {
-  if (val) {
-    setTimeout(() => {
-      showThanksModal.value = false
-    }, 2000)
-  }
-})
 
 }
 
@@ -311,6 +338,7 @@ const handleClose = () => {
   border-collapse: collapse;
   table-layout: fixed;
   background: white;
+  overflow-y: auto;
 }
 
 .TabelOrder th,
@@ -350,16 +378,6 @@ const handleClose = () => {
 }
 
 
-.mini-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid white;
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 6px;
-  animation: spin 0.6s linear infinite;
-}
 
 .overlay-text {
     position: absolute;

@@ -42,12 +42,14 @@ const close = () => {
   position: relative;
   min-width: 300px;
   max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: fixed;
+  top: 30px;
+  right: 50px;
   cursor: pointer;
   background-color: #F48B29;
   color: white;

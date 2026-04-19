@@ -1,4 +1,4 @@
-const URL = "https://script.google.com/macros/s/AKfycbyrzp3neaSq4i_8UYVqvKi11D2u9Tpp9-klskHN1uZI4xGqCAcAyVn_hxIlvq2f0Gom/exec"
+const URL = "https://script.google.com/macros/s/AKfycbwU91EdvEMr8x55uZNgpdb_SFOz4BF2TyGVadp6L6lCb_qrITPJWuZNbjL_Xc2KUNME/exec"
 export const sendOrderToSheet = async (orderData) => {
 
   await fetch(URL, {
