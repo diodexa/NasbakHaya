@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import DateTime from '../components/DateTime.vue'
 import { 
   sendOrderToSheet,
@@ -170,14 +170,7 @@ onMounted(async () => {
   }
 })
 
-watch(showThanksModal, (val) => {
-if (val) {
-  setTimeout(() => {
-    showThanksModal.value = false
-  }, 2000)
-}
 
-})
 // =================urutan tabel ==============
 // const sortedOrders = computed(() => {
   //   return [...orders.value].sort((a, b) => {
