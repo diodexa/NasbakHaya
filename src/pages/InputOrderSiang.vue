@@ -127,7 +127,7 @@ const lastNama = ref("")
 const gifUrl = "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExd3Rhd2l1bDZobXZjdDhqdmRhNjJ2bHJrZ3cxcnNhcjdhejFmdXZnayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fREdWLtU5vTgjudo3I/giphy.gif"
 
 
-/* ================= Malam ================= */
+/* ================= Siang ================= */
 
 const MalamOrders = computed(() => {
   return orders.value.filter(order => {
@@ -139,10 +139,10 @@ const MalamOrders = computed(() => {
     const start = 1 * 60    
     const end = 12 * 60 + 59  
 
-    const malam = totalMinutes >= start && totalMinutes <= end
-    const isEcare = order.nama?.toLowerCase().startsWith("ecare - ")
+    const Siang = totalMinutes >= start && totalMinutes <= end
+   
 
-    return malam && isEcare
+    return Siang 
   })
 })
 
@@ -199,7 +199,7 @@ const sortedMalamOrders = computed(() => {
 
 
 const addOrder = async (menu) => {
-  const targetNama = "ecare - "+ nama.value
+  const targetNama = nama.value
   const targetMenu = menu
   const targetTime = new Date().toTimeString().slice(0,5)
 
