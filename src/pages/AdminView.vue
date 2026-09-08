@@ -1,193 +1,296 @@
 <template>
-    <Notifikasi/>
-    <div class="OrderDiv">
-      <h1>Nasi <span style="color: #F48B29;">Bakar</span> Haya</h1>
-      <div class="FilterDate">
-        <label> Tanggal:  </label>
-        <div class="date-wrapper">
-          <input 
-            type="date" v-model="selectedDate" @change="handleDateChange"class="date-input"/>
+  <Notifikasi />
+
+  <div class="OrderDiv">
+    <!-- HEADER -->
+    <section class="dashboard-header">
+      <div>
+        <p class="eyebrow">ADMIN DASHBOARD</p>
+        <h1>Nasi Bakar Haya</h1>
+
+      </div>
+    </section>
+
+    <!-- FILTER -->
+    <section class="filter-card">
+      <div class="filter-group">
+        <label>Tanggal</label>
+        <input
+          v-model="selectedDate"
+          type="date"
+          @change="handleDateChange"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Shift</label>
+        <button
+          class="shift-button"
+          @click="toggleShift"
+        >
+          {{ activeShift === 'siang' ? '☀️ Siang' : '🌙 Malam' }}
+        </button>
+      </div>
+
+      <div class="filter-group search-group">
+        <label>Cari</label>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Cari nama, menu, notes..."
+        />
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="summary-section">
+      <div class="summary-card total">
+        <span>Total Pesanan</span>
+        <strong>{{ searchedOrders.length }}</strong>
+      </div>
+
+     <div v-for="item in menuSummary" :key="item.menu" class="summary-card">
+      <button  @click="toggleSummaryMenu(item.menu)">
+        <span>{{ item.menu }}</span>
+        <div><strong>{{ item.total }}</strong><i class="fa-solid fa-chevron-down" :class="{ rotate: openedMenu === item.menu }"></i></div>
+      </button>
+      <div v-if="openedMenu === item.menu" class="order-names">
+        <p v-for="(order, index) in orders.filter(o => o.menu === item.menu && isOrderInShift(o))":key="order.id" class="order-name"><span>{{ index + 1 }}.</span> {{ order.nama }} {{ order.notes ? `(notes : ${order.notes}) ` : '' }} </p>
+      </div>
+    </div>
+    </section>
+
+    
+
+    <!-- DETAIL PESANAN -->
+    <section class="detail-section">
+      <div class="section-header">
+        <div>
+          <h2>Detail Pesanan</h2>
         </div>
       </div>
-      <div class="ShiftToggle">
-        <button class="ShiftButton" @click="toggleShift">
-          {{ activeShift === 'siang' ? '🌤  Siang' : '🌙  Malam' }}
-        </button>
-        <input v-model="searchQuery" type="text" placeholder="Search" class="search-input"/>
-        <Modal :show="showModalList" @close="showModalList = false"></Modal>
-      </div>     
-      <p>Total : {{ filteredOrders.length }}</p>
-      <div style=" margin: 0; display: flex;">
-          <div v-for="item in menuSummary" :key="item[0]" style="font-weight:700;" class="Totaltable">
-            {{ item[0] }} : <br/> <p style="font-size: larger;">{{ item[1] }}</p>
-          </div>
-      </div>
 
-
-        
-        <!-- ================= ORDER TABLE ================= -->
-        
+      <div class="table-wrapper">
         <table class="TabelOrder">
           <thead>
-              <tr>
-                <th @click="handleSort('no')">No</th>
-                <th @click="handleSort('nama')">Nama</th>
-                <th @click="handleSort('menu')">Menu</th>
-                <th @click="handleSort('notes')">Notes</th>
-                <th @click="handleSort('action')">Action</th>
-                <th @click="handleSort('created')">Created</th>
-                <th @click="handleSort('updated')">Updated</th>
-                <th @click="handleSort('status')">Status</th>
-              </tr>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>Menu</th>
+              <th>Notes</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Updated</th>
+              <th>Action</th>
+            </tr>
           </thead>
 
           <tbody>
-              <tr v-for="(order, index) in sortedOrders" :key="order.id" :class="{ BelumBayar: order.status === 'Belum Bayar' ,Gajadi: order.menu === '-'}" >
+            <tr v-for="(order, index) in sortedOrders"
+              :key="order.id || index" :class="{'card-belum-bayar': order.status === 'Belum Bayar','card-sudah-bayar': order.status === 'Sudah Bayar' }">
               <td>{{ index + 1 }}</td>
-              
-              <td>{{ order.nama }}</td>
-              
-              <!-- MENU -->
-              <td>
-                  <div v-if="order.isEditing">
-                      <select v-model="order.menu">
-                          <option v-for="menu in menuStatus" :key="menu.menu" :value="menu.menu" :disabled="!menu.aktif">
-                              {{ menu.menu }}
-                          </option>
-                      </select>
-                  </div>
-                  
-                  <div v-else>
-                      {{ order.menu }}
-                  </div>
-              </td>
-          
-              <!-- NOTES -->
-              <td>
-                  <div v-if="order.isEditing">
-                    <input v-model="order.notes" />
-                  </div>
-                  <div v-else>
-                      {{ order.notes || '-' }}
-                  </div>
-              </td>
-          
-              <!-- ACTION -->
-              <td>
-                <button v-if="!order.isEditing" @click="order.isEditing = true" class="icon-btn">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
 
-                <button v-if="!order.isEditing" @click="deleteOrder(order)" class="icon-btn delete-btn">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-                
-                <button v-else @click="saveOrder(order)">
-                  Save
-                </button>
+              <td>
+                <input v-if="order.isEditing"
+                  v-model="order.nama"
+                  class="table-input"/>
+                <span v-else>{{ order.nama }}</span>
               </td>
 
-          
-              <td>{{ order.createdAt }}</td>
-              <td>{{ order.updatedAt }}</td>
-              
-              <!-- STATUS -->
-              <td v-if="order.menu !== '-'">
-                  <select v-model="order.status" @change="updateStatus(order)">
-                      <option value="Belum Bayar">Belum Bayar</option>
-                      <option value="Cash">Cash</option>
-                      <option value="Haya">Haya</option>
-                      <option value="Dio">Dio</option>
-                      
-                  </select>
+              <td>
+                <input
+                  v-if="order.isEditing"
+                  v-model="order.menu"
+                  class="table-input"
+                />
+                <span v-else>{{ order.menu }}</span>
               </td>
-              </tr>
+
+              <td>
+                <input
+                  v-if="order.isEditing"
+                  v-model="order.notes"
+                  class="table-input"/>
+                <span v-else>{{ order.notes || '-' }}</span>
+              </td>
+
+              <td>
+                <select v-model="order.status"
+                  class="status-select"
+                  @change="updateStatus(order)">
+                  <option>Belum Bayar</option>
+                  <option>Cash</option>
+                  <option>Haya</option>
+                  <option>Dio</option>
+                </select>
+              </td>
+
+              <td>{{ order.createdAt || '-' }}</td>
+              <td>{{ order.updatedAt || '-' }}</td>
+
+              <td>
+                <div class="action-buttons">
+                  <button
+                    v-if="!order.isEditing"
+                    class="btn-edit"
+                    @click="order.isEditing = true"
+                  >
+                    Edit
+                  </button>
+
+                  <button  v-else
+                    class="btn-save"
+                    @click="saveOrder(order)">
+                    Simpan
+                  </button>
+
+                  <button
+                    class="btn-delete"
+                    @click="deleteOrder(order)"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr v-if="!sortedOrders.length">
+              <td colspan="8" class="table-empty">
+                Tidak ada data pesanan.
+              </td>
+            </tr>
           </tbody>
         </table>
-        <h2>Menu Control</h2>
-     
-          <div class="menu-control">
-            <button v-for="menu in menuStatus" :key="menu.menu" :class="menu.aktif ? 'active-btn' : 'inactive-btn'"@click="toggleMenu(menu)">
-              {{ menu.menu }}
+      </div>
+
+      <!-- MOBILE DETAIL -->
+      <div class="mobile-detail-list">
+        <div v-for="(order, index) in sortedOrders"
+          :key="order.id || index"
+          class="mobile-detail-card"  
+          :class="{'card-belum-bayar': order.status === 'Belum Bayar', 'card-sudah-bayar': order.status !== 'Belum Bayar' }">
+          <div class="mobile-detail-header">
+            <div>
+              <strong>{{ order.nama }}</strong>
+              <span>{{ order.menu }}</span>
+            </div>
+
+            <select v-model="order.status" class="status-select" @change="updateStatus(order)">
+              <option>Belum Bayar</option>
+              <option>Cash</option>
+              <option>Haya</option>
+              <option>Dio</option>
+            </select>
+          </div>
+
+          <div class="mobile-detail-content">
+            <div>
+              <small>Notes</small>
+
+              <input  v-if="order.isEditing" v-model="order.notes" class="mobile-input" placeholder="Notes"/>
+
+              <span v-else>{{ order.notes || '-' }}</span>
+            </div>
+
+            <div>
+              <small>Created</small>
+              <span>{{ order.createdAt || '-' }}</span>
+            </div>
+
+            <div>
+              <small>Updated</small>
+              <span>{{ order.updatedAt || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="mobile-action">
+            <button
+              v-if="!order.isEditing"
+              class="btn-edit"
+              @click="order.isEditing = true"
+            >
+              Edit
+            </button>
+
+            <button
+              v-else
+              class="btn-save"
+              @click="saveOrder(order)"
+            >
+              Simpan
+            </button>
+
+            <button
+              class="btn-delete"
+              @click="deleteOrder(order)"
+            >
+              Hapus
             </button>
           </div>
-    </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU CONTROL -->
+    <section class="menu-control-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MENU MANAGEMENT</p>
+          <h2>Menu Control</h2>
+        </div>
+        <span class="menu-status-info">Tap untuk mengubah status</span>
+      </div>
+      <div class="menu-control">
+        <button v-for="menu in menuStatus" :key="menu.menu" :class="menu.aktif ? 'active-btn' : 'inactive-btn'" @click="toggleMenu(menu)">
+          <span class="menu-control-icon">
+            <i :class="menu.aktif ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+          </span>
+          <span>{{ menu.menu }}</span>
+          <small>{{ menu.aktif ? 'TERSEDIA' : 'HABIS' }}</small>
+        </button>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeMount } from 'vue'
-import {fetchTodayOrders,fetchMenuControl,sendOrderToSheet,fetchOrdersByDate} from "../services/orderService"
-import DateTime from '../components/DateTime.vue'
-import Notifikasi from '../components/Notifikasi.vue'
-import Modal from '../components/Modal.vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import {
+  fetchMenuControl,
+  sendOrderToSheet,
+  fetchOrdersByDate
+} from "../services/orderService"
 
+import Notifikasi from '../components/Notifikasi.vue'
 
 const orders = ref([])
 const menuStatus = ref([])
-const isLoading = ref(false)
-const activeShift = ref('malam')
-const sortKey = ref("createdAt") 
-const sortOrder = ref("desc")
-const searchQuery = ref("")
 
+const activeShift = ref('malam')
+const searchQuery = ref('')
+
+const openedMenu = ref(null)
+const toggleSummaryMenu = (menu) => {
+  openedMenu.value = openedMenu.value === menu ? null : menu
+}
 
 const getLocalDate = () => {
   const now = new Date()
+
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, "0")
   const day = String(now.getDate()).padStart(2, "0")
+
   return `${year}-${month}-${day}`
 }
 
 const selectedDate = ref(getLocalDate())
 
-const intervalTime = 5000
 let intervalId = null
-const previousCount = ref(0)
 
+const intervalTime = 5000
 
-onMounted(async () => {
-  // 🔹 load pertama kali
-  const orderData = await fetchOrdersByDate(selectedDate.value)
-  orders.value = orderData.map(o => ({ ...o, isEditing: false }))
-  previousCount.value = orderData.length
-
-  // 🔹 load menu (cukup sekali)
-  const menuData = await fetchMenuControl()
-  menuStatus.value = menuData
-
-  // 🔹 mulai polling
-  intervalId = setInterval(async () => {
-    try {
-      const newData = await fetchOrdersByDate(selectedDate.value)
-      const existingIds = orders.value.map(o => o.id) 
-      const addedOrders = newData.filter(o => !existingIds.includes(o.id))
-
-      if (addedOrders.length) {
-        // push order baru ke array reactive
-        orders.value.push(...addedOrders.map(o => ({ ...o, isEditing: false })))
-
-        // mainkan sound notifikasi
-        notificationSound.currentTime = 0
-        notificationSound.play().catch(() => {})
-      }
-
-      // update previousCount supaya sound tetap akurat
-      previousCount.value = newData.length
-
-    } catch (err) {
-      console.error("Polling orders gagal:", err)
-    }
-  }, intervalTime)
-})
-
-onBeforeMount(() => {
-  if (intervalId) clearInterval(intervalId)
-})
-
-/* ================= TANGGAL ================= */
-
-const handleDateChange = async () => {
+const loadOrders = async () => {
   try {
     const data = await fetchOrdersByDate(selectedDate.value)
 
@@ -195,404 +298,1022 @@ const handleDateChange = async () => {
       ...order,
       isEditing: false
     }))
-
-  } catch (err) {
-    console.error("Gagal fetch tanggal:", err)
+  } catch (error) {
+    console.error("Gagal mengambil orders:", error)
   }
 }
 
-/* ================= UPDATE ORDER ================= */
-
-const updateStatus = async (order) => {
-  await sendOrderToSheet({
-    action: "update",
-    id: order.id,
-    nama: order.nama,
-    menu: order.menu,
-    notes: order.notes,
-    status: order.status
-  })
+const loadMenu = async () => {
+  try {
+    menuStatus.value = await fetchMenuControl()
+  } catch (error) {
+    console.error("Gagal mengambil menu:", error)
+  }
 }
 
-const saveOrder = async (order) => {
-  order.isEditing = false
+onMounted(async () => {
+  await loadOrders()
+  await loadMenu()
 
-  await sendOrderToSheet({
-    action: "update",
-    id: order.id,
-    nama: order.nama,
-    menu: order.menu,
-    notes: order.notes,
-    status: order.status
-  })
-}
+  intervalId = setInterval(async () => {
+    try {
+      const latestOrders = await fetchOrdersByDate(selectedDate.value)
 
-// =============filter siang/malam======================================
-const filteredOrders = computed(() => {
-  return orders.value.filter(order => {
-    if (!order.createdAt) return false
+      orders.value = latestOrders.map(order => {
+        const existing = orders.value.find(item => item.id === order.id)
 
-    const [h, m] = order.createdAt.split(":").map(Number)
-    const totalMinutes = h * 60 + m
-
-    const siangStart = 1 * 60
-    const siangEnd = 12 * 60 + 59
-
-    if (activeShift.value === 'siang') {
-      return totalMinutes >= siangStart && totalMinutes <= siangEnd
-    } else {
-      return totalMinutes < siangStart || totalMinutes > siangEnd
+        return {
+          ...order,
+          isEditing: existing?.isEditing || false
+        }
+      })
+    } catch (error) {
+      console.error("Gagal polling orders:", error)
     }
-  })
+  }, intervalTime)
 })
-/* ================= button ================= */
+
+onBeforeUnmount(() => {
+  if (intervalId) {
+    clearInterval(intervalId)
+  }
+})
+
+const handleDateChange = async () => {
+  await loadOrders()
+}
 
 const toggleShift = () => {
-  activeShift.value = activeShift.value === 'malam' ? 'siang' : 'malam'
+  activeShift.value =
+    activeShift.value === 'siang'
+      ? 'malam'
+      : 'siang'
 }
 
+const isOrderInShift = order => {
+  if (!order.createdAt) return false
 
+  const [hour] = order.createdAt
+    .split(':')
+    .map(Number)
 
-/* ================= UPDATE MENU CONTROL ================= */
+  if (activeShift.value === 'siang') {
+    return hour >= 1 && hour < 13
+  }
 
-const updateMenu = async (menu) => {
-  await sendOrderToSheet({
-    action: "updateMenu",
-    menu: menu.menu,
-    aktif: menu.aktif
-  })
+  return hour >= 13 || hour < 1
 }
 
-const menuSummary = computed(() => {
-  const result = {}
-
-  filteredOrders.value.forEach(order => {
-    if (!result[order.menu]) {
-      result[order.menu] = 0
-    }
-    result[order.menu]++
-  })
-
-  return Object.entries(result).sort((a, b) => a[0].localeCompare(b[0]))
+const filteredOrders = computed(() => {
+  return orders.value.filter(order =>
+    isOrderInShift(order)
+  )
 })
 
-// =================SummaryEcare =============
-const ecareOrders = computed(() =>
-  orders.value.filter(order =>
-    order.nama?.toLowerCase().includes("ecare -")
-  )
-)
+const searchedOrders = computed(() => {
+  const query = searchQuery.value
+    .trim()
+    .toLowerCase()
 
-const ecareSummary = computed(() => {
-  const result = {}
+  if (!query) {
+    return filteredOrders.value
+  }
 
-  ecareOrders.value.forEach(order => {
-    if (!result[order.menu]) {
-      result[order.menu] = 0
+  return filteredOrders.value.filter(order => {
+    return (
+      String(order.nama || '')
+        .toLowerCase()
+        .includes(query) ||
+
+      String(order.menu || '')
+        .toLowerCase()
+        .includes(query) ||
+
+      String(order.notes || '')
+        .toLowerCase()
+        .includes(query) ||
+
+      String(order.status || '')
+        .toLowerCase()
+        .includes(query)
+    )
+  })
+})
+
+/*
+|--------------------------------------------------------------------------
+| GROUP PESANAN BERDASARKAN MENU
+|--------------------------------------------------------------------------
+*/
+
+const menuOrderList = computed(() => {
+  const grouped = {}
+
+  searchedOrders.value.forEach(order => {
+    if (!order.menu || order.menu === '-') {
+      return
     }
-    result[order.menu]++
+
+    if (!grouped[order.menu]) {
+      grouped[order.menu] = []
+    }
+
+    grouped[order.menu].push(order)
+  })
+
+  const result = Object.entries(grouped).map(
+    ([menu, orders]) => ({
+      menu,
+      orders
+    })
+  )
+
+  // Ikuti urutan menu dari Menu Control
+  result.sort((a, b) => {
+    const indexA = menuStatus.value.findIndex(
+      item => item.menu === a.menu
+    )
+
+    const indexB = menuStatus.value.findIndex(
+      item => item.menu === b.menu
+    )
+
+    if (indexA === -1 && indexB === -1) {
+      return a.menu.localeCompare(b.menu)
+    }
+
+    if (indexA === -1) return 1
+    if (indexB === -1) return -1
+
+    return indexA - indexB
   })
 
   return result
 })
-// ===========================================
 
+const menuSummary = computed(() => {
+  const result = {}
+
+  searchedOrders.value.forEach(order => {
+    if (!order.menu || order.menu === '-') {
+      return
+    }
+
+    if (!result[order.menu]) {
+      result[order.menu] = 0
+    }
+
+    result[order.menu]++
+  })
+
+  return Object.entries(result).map(
+    ([menu, total]) => ({
+      menu,
+      total
+    })
+  )
+})
+
+/*
+|--------------------------------------------------------------------------
+| SORT DETAIL ORDER
+|--------------------------------------------------------------------------
+*/
+
+const sortKey = ref("createdAt")
+const sortOrder = ref("desc")
 
 const sortedOrders = computed(() => {
-  return [...searchedOrders.value].sort((a, b) => {
+  const data = [...searchedOrders.value]
 
-    let valA = a[sortKey.value]
-    let valB = b[sortKey.value]
+  return data.sort((a, b) => {
+    let valueA = a[sortKey.value]
+    let valueB = b[sortKey.value]
 
-    if (sortKey.value === "createdAt" || sortKey.value === "updatedAt") {
-      const toMinutes = (time) => {
-        if (!time || time === "-") return 0
-        const [h = 0, m = 0] = time.split(":").map(Number)
-        return h * 60 + m
+    if (
+      sortKey.value === 'createdAt' ||
+      sortKey.value === 'updatedAt'
+    ) {
+      const parseTime = value => {
+        if (!value) return 0
+
+        const [hour, minute] = value
+          .split(':')
+          .map(Number)
+
+        return hour * 60 + minute
       }
 
-      valA = toMinutes(valA)
-      valB = toMinutes(valB)
+      valueA = parseTime(valueA)
+      valueB = parseTime(valueB)
     }
 
-    if (typeof valA === "string") {
-      valA = valA.toLowerCase()
-      valB = valB.toLowerCase()
+    if (valueA < valueB) {
+      return sortOrder.value === 'asc' ? -1 : 1
     }
 
-    if (valA < valB) return sortOrder.value === "asc" ? -1 : 1
-    if (valA > valB) return sortOrder.value === "asc" ? 1 : -1
+    if (valueA > valueB) {
+      return sortOrder.value === 'asc' ? 1 : -1
+    }
+
     return 0
   })
 })
 
-const toggleMenu = async (menu) => {
-  menu.aktif = !menu.aktif
-
-  await sendOrderToSheet({
-    action: "updateMenu",
-    menu: menu.menu,
-    aktif: menu.aktif
-  })
-}
-
-// =============Delete ======================
-const deleteOrder = async (order) => {
-  const confirmDelete = confirm(`Hapus order ${order.nama}?`)
-  if (!confirmDelete) return
-
-  await sendOrderToSheet({
-    action: "delete",
-    id: order.id
-  })
-
-  // hapus dari state frontend
-  orders.value = orders.value.filter(o => o.id !== order.id)
-}
-
-// sort head tabel
-
-const handleSort = (key) => {
+const handleSort = key => {
   if (sortKey.value === key) {
-    // kalau klik kolom yang sama → toggle
-    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc"
+    sortOrder.value =
+      sortOrder.value === 'asc'
+        ? 'desc'
+        : 'asc'
   } else {
-    // kalau kolom baru → set key + default asc
     sortKey.value = key
-    sortOrder.value = "asc"
+    sortOrder.value = 'asc'
   }
 }
 
-//           Search
+/*
+|--------------------------------------------------------------------------
+| ORDER ACTION
+|--------------------------------------------------------------------------
+*/
 
-const searchedOrders = computed(() => {
-  if (!searchQuery.value) return filteredOrders.value
+const updateStatus = async order => {
+  try {
+    await sendOrderToSheet({
+      action: 'update',
+      id: order.id,
+      nama: order.nama,
+      menu: order.menu,
+      notes: order.notes,
+      status: order.status
+    })
+  } catch (error) {
+    console.error("Gagal update status:", error)
+  }
+}
 
-  const q = searchQuery.value.toLowerCase()
+const saveOrder = async order => {
+  try {
+    await sendOrderToSheet({
+      action: 'update',
+      id: order.id,
+      nama: order.nama,
+      menu: order.menu,
+      notes: order.notes,
+      status: order.status
+    })
 
-  return filteredOrders.value.filter(order => {
-    return (
-      order.nama?.toLowerCase().includes(q) ||
-      order.menu?.toLowerCase().includes(q) ||
-      order.notes?.toLowerCase().includes(q) ||
-      order.status?.toLowerCase().includes(q)
+    order.isEditing = false
+
+  } catch (error) {
+    console.error("Gagal menyimpan order:", error)
+  }
+}
+
+const deleteOrder = async order => {
+  const confirmed = confirm(
+    `Hapus pesanan ${order.nama}?`
+  )
+
+  if (!confirmed) return
+
+  try {
+    await sendOrderToSheet({
+      action: 'delete',
+      id: order.id
+    })
+
+    orders.value = orders.value.filter(
+      item => item.id !== order.id
     )
-  })
-})
+
+  } catch (error) {
+    console.error("Gagal menghapus order:", error)
+  }
+}
+
+/*
+|--------------------------------------------------------------------------
+| MENU CONTROL
+|--------------------------------------------------------------------------
+*/
+
+const toggleMenu = async menu => {
+  const oldStatus = menu.aktif
+
+  menu.aktif = !menu.aktif
+
+  try {
+    await sendOrderToSheet({
+      action: 'updateMenu',
+      menu: menu.menu,
+      aktif: menu.aktif
+    })
+  } catch (error) {
+    console.error("Gagal update menu:", error)
+
+    menu.aktif = oldStatus
+  }
+}
+
+/*
+|--------------------------------------------------------------------------
+| STATUS CLASS
+|--------------------------------------------------------------------------
+*/
+
+const getStatusClass = status => {
+  switch (status) {
+    case 'Cash':
+      return 'status-cash'
+
+    case 'Haya':
+      return 'status-haya'
+
+    case 'Dio':
+      return 'status-dio'
+
+    default:
+      return 'status-unpaid'
+  }
+}
 </script>
 
-<style>
+<style scoped>
 .OrderDiv {
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px;
+  background: #fffaf6;
+  color: #321b1b;
+  box-sizing: border-box;
+}
+
+.dashboard-header {
+  background: #641919;
+  color: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  opacity: .65;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+
+.filter-card {
+  display: grid;
+  grid-template-columns: 180px 180px 1fr;
+  gap: 16px;
+  background: white;
+  padding: 20px;
+  border: 1px solid #eaded8;
+  border-radius: 18px;
+  margin-bottom: 20px;
+}
+
+.filter-group {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  color: black;
-}
-h1 {
-  font-size: clamp(1.8rem, 9vw, 4rem);
-  text-shadow: 
-    -3px -3px 0 white,
-     3px -3px 0 white,
-    -3px  3px 0 white,
-     3px  3px 0 white;
+  gap: 7px;
 }
 
-
-label {
-  mix-blend-mode: difference; 
-  filter: invert(1);
+.filter-group label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #806f68;
 }
 
-.search-input {
- width: 80%;
- text-align: center;
+.filter-group input,
+.shift-button {
+  width: 100%;
+  height: 42px;
+  padding: 0 13px;
+  box-sizing: border-box;
+  border: 1px solid #ded1cb;
+  border-radius: 10px;
+  background: white;
+  color: #321b1b;
+  font-size: 14px;
+  outline: none;
 }
 
-.Totaltable {
+.filter-group input:focus {
+  border-color: #641919;
+}
+
+.shift-button {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.summary-section {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  
+}
+
+.summary-card {
+  position: relative;
+  border: 1px solid #eaded8;
+  border-radius: 16px;
+  overflow: visible;
   display: flex;
   flex-direction: column;
-  flex: auto;
-  justify-content: space-between;
-  border: 1px solid;
-  padding: 3px;
+  padding: 0;
 }
 
-.Totaltable:nth-child(1) {
-  background-color: #e2c670;
-}
-.Totaltable:nth-child(2) {
-  background-color: #abe270;
-}
-.Totaltable:nth-child(3) {
-  background-color: #70e2ba;
-}
-.Totaltable:nth-child(4) {
-  background-color: #70dee2;
-}
-.Totaltable:nth-child(5) {
-  background-color: #70ade2;
-}
-.Totaltable:nth-child(6) {
-  background-color: #b270e2;
-}
-.Totaltable:nth-child(7) {
-  background-color: #e270c5;
+.summary-card > button {
+  width: 100%;
+  height: 100%;
+  min-height: 75px;
+  padding: 18px;
+  margin: 0;
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  box-sizing: border-box;
+  background: rgb(219, 161, 47);
+  color: white;
 }
 
-.FilterDate {
+.order-names {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  z-index: 20;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  background: white;
+  border: 1px solid #eaded8;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.12);
+}
+
+
+
+.summary-card span {
+  font-size: 12px;
+}
+
+.summary-card strong {
+  color: #641919;
+  font-size: 25px;
+}
+
+.summary-card.total {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: #641919;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
 }
 
-.date-wrapper {
-  position: relative;
+
+.summary-card.total span,
+.summary-card.total strong {
+  color: white;
 }
 
-.date-input {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 10px 40px 10px 12px;
-  border: 1px solid #E3D2C3;
-  border-radius: 8px;
-  background-color: #f9f6f3;
+
+
+.menu-orders-section,
+.detail-section,
+.menu-control-section {
+  border: 1px solid #eaded8;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 21px;
+  color: #321b1b;
+}
+
+.section-count {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #fff1e5;
+  color: #b65a16;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.menu-order-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.menu-order-card {
+  border: 1px solid #eaded8;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fffdfb;
+}
+
+.menu-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px;
+  background: #fff7f1;
+  border-bottom: 1px solid #eaded8;
+}
+
+.menu-card-header h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #641919;
+}
+
+.menu-card-header span {
+  display: block;
+  margin-top: 3px;
+  color: #8b7770;
+  font-size: 12px;
+}
+
+.menu-total {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #641919;
+  color: white;
   font-size: 14px;
-  transition: all 0.3s ease;
+  font-weight: 800;
 }
 
-/* focus effect */
-.date-input:focus {
-  outline: none;
-  border-color: #c5a880;
-  box-shadow: 0 0 0 2px rgba(197, 168, 128, 0.2);
+.customer-list {
+  padding: 8px 0;
 }
 
-/* sembunyikan icon bawaan */
-.date-input::-webkit-calendar-picker-indicator {
-  opacity: 0;
-  position: absolute;
-  right: 10px;
-  cursor: pointer;
+.customer-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0e8e4;
 }
 
-/* icon custom */
-.date-wrapper::after {
-  content: "📅";
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
+.customer-item:last-child {
+  border-bottom: 0;
+}
+
+.customer-number {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: #f4ebe6;
+  color: #806f68;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.customer-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.customer-info strong {
+  display: block;
+  font-size: 14px;
+  color: #321b1b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-info small {
+  display: block;
+  margin-top: 2px;
+  color: #927e76;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-status {
+  flex-shrink: 0;
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-unpaid {
+  background: #fff0ed;
+  color: #c23d29;
+}
+
+.status-cash {
+  background: #edf9f0;
+  color: #258443;
+}
+
+.status-haya {
+  background: #fff3df;
+  color: #b66b09;
+}
+
+.status-dio {
+  background: #eeeaff;
+  color: #6652c4;
+}
+
+.empty-state {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #806f68;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.empty-state strong {
+  color: #321b1b;
   font-size: 16px;
+}
+
+.empty-state span {
+  margin-top: 5px;
+  font-size: 13px;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
 .TabelOrder {
   width: 100%;
+  min-width: 950px;
   border-collapse: collapse;
-  table-layout: fixed;
-  font-size: smaller;
-  background-color: white;
-}
-
-.TabelOrder input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 4px 6px;
-}
-
-.TabelOrder th,
-.TabelOrder td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-  word-break: break-all;
 }
 
 .TabelOrder th {
+  padding: 12px;
+  text-align: left;
+  background: #faf4f0;
+  color: #806f68;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+
+.TabelOrder td {
+  padding: 12px;
+  border-bottom: 1px solid #eee5e1;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.table-input,
+.status-select {
+  width: 100%;
+  min-height: 34px;
+  box-sizing: border-box;
+  border: 1px solid #ded1cb;
+  border-radius: 7px;
+  padding: 0 8px;
+  background: white;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.action-buttons button,
+.mobile-action button {
+  border: 0;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-select {
-  width: 100%;
+.btn-edit {
+  background: #fff1e5;
+  color: #b65a16;
 }
 
-.icon-btn {
-  background: none;
-  border: none;
+.btn-save {
+  background: #eaf7ed;
+  color: #278144;
 }
 
-.BelumBayar {
-  background-color: red;
-  color: white;
-  opacity: 0.7;
+.btn-delete {
+  background: #fff0ed;
+  color: #c23d29;
 }
 
-.Gajadi {
-    background-color: black;
-}
-
-option {
-  justify-content: center;
-  align-items: center;
+.table-empty {
   text-align: center;
+  padding: 35px !important;
+  color: #8b7770;
+}
+
+.mobile-detail-list {
+  display: none;
 }
 
 .menu-control {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
 }
 
 .menu-control button {
-  flex: 1 1 45%;
-  padding: 12px;
+  display: grid;
+  grid-template-columns: 35px 1fr;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  column-gap: 8px;
+  padding: 10px 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   color: white;
-  font-weight: bold;
+  text-align: left;
   cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.delete-btn:hover {
-  transform: scale(1.1);
-}
-
-.active-btn {
-  background-color: #28a745;
-}
-
-.inactive-btn {
-  background-color: #dc3545;
+  transition: .2s ease;
 }
 
 .menu-control button:hover {
-  transform: scale(1.03);
+  transform: translateY(-2px);
 }
 
-.ShiftToggle {
+.menu-control-icon {
+  grid-row: 1 / 3;
+  width: 32px;
+  height: 32px;
   display: flex;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
 }
 
-.ShiftButton {
-  padding: 8px 16px;
+.menu-control button span:nth-child(2) {
+  font-size: .85rem;
+  font-weight: 800;
+}
+
+.menu-control button small {
+  font-size: .55rem;
+  opacity: .8;
+  font-weight: 700;
+}
+
+.active-btn {
+  background: #278c48;
+}
+
+.inactive-btn {
+  background: #c93636;
+}
+
+.mobile-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+}
+
+.mobile-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border: 1px solid #ded1cb;
   border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s ease;
+  background: white;
+  color: #321b1b;
+  font-size: 14px;
+  outline: none;
 }
 
-.ShiftButton:hover {
-  opacity: 0.8;
+.mobile-input:focus {
+  border-color: #641919;
 }
 
-@media (max-width: 600px) {
-  .search-input {
-   width: 63%;
+.card-belum-bayar {
+  background: #f6b5a8;
+}
+
+.card-sudah-bayar {
+  background: white;
+}
+
+@media (max-width: 1000px) {
+  .OrderDiv {
+    padding: 20px;
   }
 
+  .summary-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .menu-order-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menu-control-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
+@media (max-width: 700px) {
+  .OrderDiv {
+    padding: 12px;
+  }
+
+  .dashboard-header {
+    padding: 22px;
+    border-radius: 16px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 25px;
+  }
+
+  .filter-card {
+    grid-template-columns: 1fr 1fr;
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .search-group {
+    grid-column: 1 / -1;
+  }
+
+
+
+
+
+  .summary-card strong {
+    font-size: 21px;
+  }
+
+  .menu-orders-section,
+  .detail-section,
+  .menu-control-section {
+    padding: 15px;
+    border-radius: 16px;
+  }
+
+  .menu-order-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-card-header {
+    padding: 14px;
+  }
+
+  .customer-item {
+    padding: 10px 12px;
+  }
+
+  .table-wrapper {
+    display: none;
+  }
+
+  .mobile-detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobile-detail-card {
+    border: 1px solid #eaded8;
+    border-radius: 13px;
+    padding: 13px;
+  }
+
+  .mobile-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mobile-detail-header strong {
+    display: block;
+    font-size: 14px;
+  }
+
+  .mobile-detail-header span:not(.customer-status) {
+    display: block;
+    margin-top: 3px;
+    color: #806f68;
+    font-size: 12px;
+  }
+
+  .mobile-detail-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 13px;
+    padding-top: 12px;
+    border-top: 1px solid #eee5e1;
+  }
+
+  .mobile-detail-content div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .mobile-detail-content small,
+  .mobile-detail-content span {
+    display: block;
+  }
+
+  .mobile-detail-content small {
+    margin-bottom: 3px;
+    color: #927e76;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .mobile-detail-content span {
+    font-size: 12px;
+  }
+
+  .mobile-action {
+    display: flex;
+    gap: 7px;
+    margin-top: 12px;
+  }
+
+  .mobile-action button {
+    flex: 1;
+  }
+
+  .menu-control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-control-card {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .filter-card {
+    grid-template-columns: 1fr;
+  }
+
+  .search-group {
+    grid-column: auto;
+  }
+
+ 
+  .customer-status {
+    font-size: 8px;
+  }
+}
 </style>
