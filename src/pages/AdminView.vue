@@ -737,7 +737,7 @@ const getStatusClass = status => {
   overflow: visible;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  padding: 20px;
 }
 
 .summary-card > button {

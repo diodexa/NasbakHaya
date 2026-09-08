@@ -356,7 +356,8 @@ const isMenuActive = (menu) => {
   margin-bottom: 7px;
   font-size: .9rem;
   font-weight: 700;
-  color: #641919;
+  color: #f48b29;
+  
 }
 .name-section label i {
   color: #f48b29;
@@ -397,7 +398,7 @@ const isMenuActive = (menu) => {
   margin: 0;
   font-family: "RiceBall";
   font-size: 1.5rem;
-  color: #641919;
+  color: #f48b29;
 }
 .menu-title p {
   margin: 2px 0 0;
@@ -421,14 +422,15 @@ const isMenuActive = (menu) => {
   overflow: hidden;
   border: none;
   border-radius: 18px;
-  background-size: contain;
+  background-size: 80%;
   background-position: center;
+  background-repeat: no-repeat;
   color: #fff;
   cursor: pointer;
   box-shadow: 0 7px 18px rgba(60,30,10,.16);
   transition: transform .2s ease, box-shadow .2s ease;
-  
 }
+
 .menu-button:not(:disabled):hover {
   transform: translateY(-3px);
   box-shadow: 0 11px 25px rgba(60,30,10,.22);
