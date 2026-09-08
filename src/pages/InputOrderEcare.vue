@@ -422,7 +422,7 @@ const isMenuActive = (menu) => {
   overflow: hidden;
   border: none;
   border-radius: 18px;
-  background-size: 80%;
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   color: #fff;
