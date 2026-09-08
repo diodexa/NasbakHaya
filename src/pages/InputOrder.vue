@@ -353,13 +353,9 @@ const isMenuActive = (menu) => {
   font-size: 1.5rem;
   color: #f48b29;
 }
-.menu-title p {
-  margin: 2px 0 0;
-  font-size: .75rem;
-  color: #a08878;
-}
+
 .ButtonMenu {
-  display: flex;
+   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   
@@ -370,12 +366,12 @@ const isMenuActive = (menu) => {
   align-items: flex-end;
   justify-content: flex-start;
   min-height: 175px;
-  flex: 1 1 calc(50% - 6px);
+  flex: 1 1 calc(30% - 8px);
   padding: 18px;
   overflow: hidden;
   border: none;
   border-radius: 18px;
-  background-size: 80%;
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   color: #fff;
@@ -399,7 +395,7 @@ const isMenuActive = (menu) => {
 .menu-name {
   position: relative;
   z-index: 2;
-  font-size: clamp(1rem, 5vw, 2rem);
+  font-size: 1rem;
   line-height: 1;
   text-align: left;
   text-shadow: 0 2px 5px rgba(0,0,0,.5);
@@ -715,10 +711,10 @@ const isMenuActive = (menu) => {
   }
   
 
-  .menu-name {
-    font-size: 1rem;
-  }
 
+  .menu-button {
+  flex: 1 1 calc(50% - 6px);
+  }
 
 
   .floating-button {
